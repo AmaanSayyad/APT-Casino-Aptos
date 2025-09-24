@@ -1,0 +1,50 @@
+--- a/src/app/game/roulette/page.jsx
++++ b/src/app/game/roulette/page.jsx
+@@ -2632,53 +2632,6 @@
+                 fontWeight: bold
+               }}
+             >
+-              <TextFieldCurrency
+-                label="Bet Amount"
+-                variant="standard"
+-                value={bet}
+-                handleChange={handleBetChange}
+-              />
+-              <Box sx={{ mt: 2, mb: 1 }}>
+-                <Typography variant="body1" color="white">
+-                  Total Balance:{" "}
+-                  {isLoadingBalance ? (
+-                    <CircularProgress size={16} />
+-                  ) : (
+-                    `${(userBalance / 100000000).toFixed(8)} APT` || "0 APT"
+-                  )}
+-                </Typography>
+-              </Box>
+-              <Box sx={{ mt: 1, mb: 2 }}>
+-                <Typography variant="body2" color="text.secondary">
+-                  Current Bet Total: {Object.values(bets).reduce((a, b) => a + b, 0)} APT
+-                </Typography>
+-              </Box>
+-              <Box sx={{ display: flex, gap: 1, mb: 2 }}>
+-                {[1, 5, 10, 25, 50, 100].map((amount) => (
+-                  <Button
+-                    key={amount}
+-                    variant="outlined"
+-                    onClick={() => handleBetChange({ target: { value: amount } })}
+-                    sx={{
+-                      borderColor: primary.main,
+-                      color: primary.main,
+-                      &:hover: {
+-                        backgroundColor: primary.dark
+-                      }
+-                    }}
+-                  >
+-                    {amount}
+-                  </Button>
+-                ))}
+-              </Box>
+-
+               <Button
+                 variant="contained"
+                 color="primary"
+
