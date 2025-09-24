@@ -1,0 +1,17 @@
+/* Navbar positioning fix */
+body {
+  padding-top: 88px; /* Adjust based on your navbar height */
+}
+
+.game-page-container {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Ensure the navbar is properly fixed at the top */
+nav.fixed {
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+}
