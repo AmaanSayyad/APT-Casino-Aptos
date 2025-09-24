@@ -1,0 +1,10 @@
+[package]
+name = "apt_casino"
+version = "1.0.0"
+upgrade_policy = "compatible"
+
+[dependencies]
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework/", rev = "main" }
+
+[addresses]
+apt_casino = "0x07ad1ffb16ed76e280285ca1289f37d71ff9a9f78f00bfa04f8861022fcec449"
