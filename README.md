@@ -67,8 +67,7 @@ Aptos-Casino addresses these problems by offering:
 
 ## Technical Architecture
 
-
-
+<img width="1657" height="731" alt="Screenshot 2025-09-25 at 1 51 21 AM" src="https://github.com/user-attachments/assets/5380ce03-c176-42c4-9698-ef08d2eca5a4" />
 
 
 ## Technology Stack
@@ -187,17 +186,12 @@ NEXT_PUBLIC_APTOS_NETWORK=testnet|mainnet
 NEXT_PUBLIC_CASINO_MODULE_ADDRESS=your_module_address
 
 TREASURY_PRIVATE_KEY=
-DEPLOYER_PRIVATE_KEY=
 NEXT_PUBLIC_LIVEPEER_API_KEY=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 NEXT_PUBLIC_SUPABASE_URL=
 
 # Deployment
 DEPLOYER_PRIVATE_KEY=your_private_key
-
-# Wallet Connect
-NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=your_project_id
-```
 
 ## 🚀 Deployment
 
