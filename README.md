@@ -1,10 +1,10 @@
-# Aptos-Casino - Fully On-Chain Casino on Aptos Blockchain
+# APT-Casino -  Real-Time GambleFi as a Decentralized Probabilistic Compute Layer on Aptos
 
 A couple of days back, I was was on etherscan exploring some transactions and saw an advertisement of [https://stake.com/](url) which was giving 200% bonus on first deposit, I deposited 120 USDT into stake.com they gave 360 USDT as total balance in their controlled custodial wallet and when I started playing casino games I was shocked to see that I was only able to play with $1 per game and was unable to increase the betting amount beyond $1 coz and when I tried to explore and play other games on the platform the issue was persisting, I reached the customer support and got to know that this platform has cheated him under the name of wager limits as I was using the bonus scheme of 200%.
 
 When I asked the customer support to withdraw money they showed a rule list of wager limit, which said that if I wanted to withdraw the deposited amount, then I have to play $12,300 worth of gameplay and this was a big shock for me, as I was explained a maths logic by their live support. Thereby, In the hope of getting the deposited money back, I played the different games of stake.com like roulette, mines, spin wheel, etc, the entire night and lost all the money.
 
-I was very annoyed of that's how Aptos-Casino was born, which is a combination of gamefi and defi all in one platform where new web3 users can play games, perform gambling, but have a safe, secure, transparent platform that does not scam any of their users. Also, I wanted to address common issues in traditional gambling platforms.
+I was very annoyed of that's how APT-Casino was born, which is a combination of gamefi and defi all in one platform where new web3 users can play games, perform gambling, but have a safe, secure, transparent platform that does not scam any of their users. Also, I wanted to address common issues in traditional gambling platforms.
 
 ## Problems
 
@@ -25,7 +25,7 @@ The traditional online gambling industry is plagued by several issues, including
 
 ## Solution
 
-Aptos-Casino addresses these problems by offering:
+APT-Casino addresses these problems by offering:
 - **Provably Fair Gaming:** Utilising the Aptos on-chain randomness module, my platform ensures all game outcomes are 100% transparent and verifiably fair.
 
 ![APT-Casino - Analog pptx (3)](https://github.com/user-attachments/assets/6880e1cb-769c-4272-8b66-686a90abf3be)
