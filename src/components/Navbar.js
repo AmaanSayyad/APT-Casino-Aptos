@@ -241,7 +241,11 @@ export default function Navbar() {
       // Update user balance to 0 after successful withdrawal
       dispatch(setBalance('0'));
       
-      notification.success(`Successfully withdrew ${balanceInApt.toFixed(4)} APT! TX: ${result.transactionHash.slice(0, 8)}...`);
+      const txHash = result.transactionHash || result.userTxHash || result.txnHash || 'N/A';
+      const txDisplay = typeof txHash === 'string' && txHash.length > 8 
+        ? `${txHash.slice(0, 8)}...` 
+        : txHash;
+      notification.success(`Successfully withdrew ${balanceInApt.toFixed(4)} APT! TX: ${txDisplay}`);
       
       // Close the modal
       setShowBalanceModal(false);

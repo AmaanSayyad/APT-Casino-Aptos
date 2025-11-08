@@ -106,7 +106,11 @@ const WithdrawModal = ({ isOpen, onClose }) => {
       dispatch(setBalance(newBalanceOctas.toString()));
       
       setStep('success');
-      toast.success(`Successfully withdrew ${amount} APT! TX: ${result.transactionHash.slice(0, 8)}...`);
+      const txHash = result.transactionHash || result.userTxHash || result.txnHash || 'N/A';
+      const txDisplay = typeof txHash === 'string' && txHash.length > 8 
+        ? `${txHash.slice(0, 8)}...` 
+        : txHash;
+      toast.success(`Successfully withdrew ${amount} APT! TX: ${txDisplay}`);
       
       // Close modal after 3 seconds
       setTimeout(() => {

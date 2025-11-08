@@ -106,7 +106,13 @@ export async function POST(request) {
         feeRecipient,
         feeOctas
       );
-      await client.waitForTransaction(feeTxHash);
+      // Ensure feeTxHash is a string
+      if (!feeTxHash) {
+        throw new Error('Fee transaction hash not returned from transfer');
+      }
+      const feeTxHashString = typeof feeTxHash === 'string' ? feeTxHash : String(feeTxHash);
+      await client.waitForTransaction(feeTxHashString);
+      feeTxHash = feeTxHashString; // Update to string version
       console.log(`✅ Fee transfer: ${feeOctas / 100000000} APT to ${feeRecipient}, TX: ${feeTxHash}`);
     }
 
@@ -115,8 +121,18 @@ export async function POST(request) {
       formattedUserAddress,
       userPayoutOctas
     );
-    await client.waitForTransaction(userTxHash);
-    console.log(`✅ Withdrawal successful: ${userPayoutOctas / 100000000} APT to ${userAddress}, TX: ${userTxHash}`);
+    
+    // Ensure userTxHash is a string
+    if (!userTxHash) {
+      throw new Error('Transaction hash not returned from transfer');
+    }
+    
+    const userTxHashString = typeof userTxHash === 'string' ? userTxHash : String(userTxHash);
+    await client.waitForTransaction(userTxHashString);
+    console.log(`✅ Withdrawal successful: ${userPayoutOctas / 100000000} APT to ${userAddress}, TX: ${userTxHashString}`);
+
+    // feeTxHash is already a string from above, or null
+    const feeTxHashString = feeTxHash;
 
     return NextResponse.json({
       success: true,
@@ -124,8 +140,9 @@ export async function POST(request) {
       principal: principal || 0,
       fee: feeOctas / 100000000,
       userPayout: userPayoutOctas / 100000000,
-      feeTxHash,
-      userTxHash,
+      feeTxHash: feeTxHashString,
+      transactionHash: userTxHashString, // Also include as transactionHash for backward compatibility
+      userTxHash: userTxHashString,
       userAddress: formattedUserAddress,
       treasuryAddress: treasuryAccount.address().hex()
     });
