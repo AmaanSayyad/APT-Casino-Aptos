@@ -1984,16 +1984,33 @@ export default function GameRoulette() {
             result: gameResult,
             payout: netResult > 0 ? (netResult - totalBetAmount) : 0,
           }).then(res => {
-            if (res?.success) {
+            console.log('🎲 Roulette game log response:', res);
+            if (res?.success && res?.transactionHash) {
+              const txHash = typeof res.transactionHash === 'string' 
+                ? res.transactionHash 
+                : (res.transactionHash?.hash || String(res.transactionHash) || null);
+              
+              console.log('✅ Updating bet history with txHash:', txHash);
               setBettingHistory(prev => {
-                if (prev.length === 0) return prev;
+                if (prev.length === 0) {
+                  console.warn('⚠️ No betting history to update');
+                  return prev;
+                }
                 const [first, ...rest] = prev;
-                const updatedFirst = { ...first, txHash: res.transactionHash || null };
+                const updatedFirst = { ...first, txHash: txHash };
+                console.log('📝 Updated bet entry:', updatedFirst);
                 return [updatedFirst, ...rest];
               });
+            } else {
+              console.warn('⚠️ Game log response missing success or transactionHash:', res);
             }
           }).catch(error => {
-            console.error('Failed to log roulette game:', error);
+            console.error('❌ Failed to log roulette game:', error);
+            console.error('Error details:', {
+              message: error?.message,
+              stack: error?.stack,
+              response: error?.response
+            });
           });
         }
 
