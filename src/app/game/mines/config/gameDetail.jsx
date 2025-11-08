@@ -3,7 +3,7 @@ export const gameData = {
   title: "Mines",
   image: "/images/games/mines.png",
   description: "Unearth hidden gems while avoiding mines in this thrilling crypto game!",
-  youtube: "https://www.youtube.com/embed/Aqz5C7GPrvQ?si=XZlr0I0rGt9CtuHW",
+  youtube: "https://www.youtube.com/embed/SJNWidJKOeA?si=SfKVKLsO_UyfGi5h",
   paragraphs: [
     "Select mines on a 5x5 grid – more mines mean higher rewards but greater risk.",
     "Uncover gems while avoiding mines to increase your multiplier. Cash out anytime or keep going for bigger rewards.",

@@ -2,7 +2,7 @@ export const gameData = {
   title: "Plinko",
   label: "INSTANT WIN GAME",
   image: "/images/games/plinko.png",
-  youtube: "1joS8B3zrnI", // Plinko Game Tutorial Video ID
+  youtube: "AbaVLveTcrM", // Plinko Game Tutorial Video ID
   paragraphs: [
     "Experience the thrill of Plinko, a classic game of chance where strategy meets luck. Drop your ball from the top and watch it bounce through a maze of pegs, creating an exciting journey to potential big wins.",
     

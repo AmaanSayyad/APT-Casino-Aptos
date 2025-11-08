@@ -472,7 +472,7 @@ export default function Mines() {
                   <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-lg shadow-purple-900/30 border border-purple-600/20" style={{ paddingTop: "56.25%" }}>
                     <iframe 
                       className="absolute top-0 left-0 w-full h-full"
-                      src="https://www.youtube.com/embed/Aqz5C7GPrvQ?si=9F38e0aJvMv1K2PO" 
+                      src="https://www.youtube.com/embed/SJNWidJKOeA?si=SfKVKLsO_UyfGi5h" 
                       title="YouTube video player" 
                       frameBorder="0" 
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Aptos, AptosConfig, Network, Ed25519PrivateKey, Account } from '@aptos-labs/ts-sdk';
 
-// Use environment variable to determine network, default to testnet
-const network = process.env.NEXT_PUBLIC_APTOS_NETWORK === 'mainnet' ? Network.MAINNET : Network.TESTNET;
-const config = new AptosConfig({ network });
+const config = new AptosConfig({ network: Network.TESTNET });
 const aptos = new Aptos(config);
 
 // Game types mapping
@@ -93,32 +91,10 @@ export async function POST(request: NextRequest) {
       transaction,
     });
 
-    // Extract transaction hash - handle different possible formats
-    let txHash: string;
-    if (typeof committedTxn.hash === 'string') {
-      txHash = committedTxn.hash;
-    } else if (committedTxn.hash && typeof committedTxn.hash === 'object' && 'hash' in committedTxn.hash) {
-      txHash = String(committedTxn.hash.hash);
-    } else if (committedTxn.hash) {
-      txHash = String(committedTxn.hash);
-    } else {
-      throw new Error('Transaction hash not returned from signAndSubmitTransaction');
-    }
-
-    // Ensure hash is a valid string
-    if (!txHash || txHash.length === 0) {
-      throw new Error('Invalid transaction hash returned');
-    }
-
     // Wait for transaction confirmation
     const executedTransaction = await aptos.waitForTransaction({
-      transactionHash: txHash,
+      transactionHash: committedTxn.hash,
     });
-
-    // Verify transaction was successful
-    if (!executedTransaction.success) {
-      throw new Error(`Transaction failed: ${executedTransaction.vm_status || 'Unknown error'}`);
-    }
 
     // Console log for debugging
     console.log('🎮 GAME LOGGED TO BLOCKCHAIN:');
@@ -127,7 +103,7 @@ export async function POST(request: NextRequest) {
     console.log('├── Bet Amount:', betAmount, 'APT');
     console.log('├── Result:', result);
     console.log('├── Payout:', payout, 'APT');
-    console.log('├── Transaction Hash:', txHash);
+    console.log('├── Transaction Hash:', committedTxn.hash);
     console.log('├── Treasury Address:', treasuryAccount.accountAddress.toString());
     console.log('├── Gas Used:', executedTransaction.gas_used);
     console.log('├── Gas Price:', executedTransaction.gas_unit_price);
@@ -137,13 +113,13 @@ export async function POST(request: NextRequest) {
     console.log('├── Timestamp:', new Date(Number(executedTransaction.timestamp) / 1000).toISOString());
     console.log('├── 🎲 Randomness generated on-chain by Aptos');
     console.log('├── 🔐 Transaction signed by Treasury wallet');
-    console.log('└── 🌐 Explorer URL:', `https://explorer.aptoslabs.com/txn/${txHash}?network=testnet`);
+    console.log('└── 🌐 Explorer URL:', `https://explorer.aptoslabs.com/txn/${committedTxn.hash}?network=testnet`);
 
     return NextResponse.json({
       success: true,
-      transactionHash: txHash,
+      transactionHash: committedTxn.hash,
       gameLogged: true,
-      explorerUrl: `https://explorer.aptoslabs.com/txn/${txHash}?network=testnet`,
+      explorerUrl: `https://explorer.aptoslabs.com/txn/${committedTxn.hash}?network=testnet`,
     });
 
   } catch (error: any) {
