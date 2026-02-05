@@ -71,8 +71,8 @@ export default function Navbar() {
   const isWalletReady = isConnected && account && signAndSubmitTransaction;
 
   // Backend deposit hook
-  const { deposit: backendDeposit, isDepositing: isBackendDepositing } = useBackendDeposit({ 
-    signAndSubmitTransaction 
+  const { deposit: backendDeposit, isDepositing: isBackendDepositing } = useBackendDeposit({
+    signAndSubmitTransaction
   });
 
   // Mock notifications for UI purposes
@@ -96,7 +96,7 @@ export default function Navbar() {
   // Load user balance from house account
   const loadUserBalance = async () => {
     if (!address) return;
-    
+
     try {
       dispatch(setLoading(true));
       const balance = await UserBalanceSystem.getBalance(address);
@@ -133,37 +133,37 @@ export default function Navbar() {
         // The wallet adapter should automatically reconnect
       }
     };
-    
+
     checkWalletConnection();
   }, []);
 
   useEffect(() => {
     setIsClient(true);
     setUnreadNotifications(notifications.filter(n => !n.isRead).length);
-    
+
     // Initialize dark mode from local storage if available
     const savedMode = localStorage.getItem('darkMode');
     if (savedMode !== null) {
       setIsDarkMode(savedMode === 'true');
     }
-    
-    // Aptos wallet integration - simplified for testnet only
+
+    // Aptos wallet integration - simplified for mainnet only
     // In development mode, use mock data
     if (isDev) {
       setUserAddress('0x1234...dev');
     }
-    
+
     // Handle click outside search panel
     const handleClickOutside = (event) => {
       if (
-        searchPanelRef.current && 
+        searchPanelRef.current &&
         !searchPanelRef.current.contains(event.target) &&
         !searchInputRef.current?.contains(event.target)
       ) {
         setShowSearch(false);
       }
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -179,7 +179,7 @@ export default function Navbar() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [showBalanceModal]);
-  
+
   // Poll for balance changes
   const pollForBalance = async (initialBalance, attempts = 10, interval = 2000) => {
     dispatch(setLoading(true));
@@ -220,7 +220,7 @@ export default function Navbar() {
       console.log('🔍 Account object:', account);
       console.log('🔍 Account address:', account.address);
       console.log('🔍 Account address type:', typeof account.address);
-      
+
       const response = await fetch('/api/withdraw', {
         method: 'POST',
         headers: {
@@ -240,16 +240,16 @@ export default function Navbar() {
 
       // Update user balance to 0 after successful withdrawal
       dispatch(setBalance('0'));
-      
+
       const txHash = result.transactionHash || result.userTxHash || result.txnHash || 'N/A';
-      const txDisplay = typeof txHash === 'string' && txHash.length > 8 
-        ? `${txHash.slice(0, 8)}...` 
+      const txDisplay = typeof txHash === 'string' && txHash.length > 8
+        ? `${txHash.slice(0, 8)}...`
         : txHash;
       notification.success(`Successfully withdrew ${balanceInApt.toFixed(4)} APT! TX: ${txDisplay}`);
-      
+
       // Close the modal
       setShowBalanceModal(false);
-      
+
     } catch (error) {
       console.error('Withdraw error:', error);
       notification.error(`Withdrawal failed: ${error.message}`);
@@ -293,13 +293,13 @@ export default function Navbar() {
       console.log('├── account object:', account);
       console.log('├── isConnected:', isConnected);
       console.log('└── signAndSubmitTransaction:', !!signAndSubmitTransaction);
-      
+
       // Step 1: Send APT directly to treasury using wallet's native method
       const treasuryAddress = TREASURY_ADDRESS;
       const amountOctas = Math.floor(amount * 100000000);
-      
+
       console.log('📤 Sending APT to treasury:', { treasuryAddress, amountOctas });
-      
+
       // Create the transfer payload (Aptos Wallet Standard)
       const transferPayload = {
         type: "entry_function_payload",
@@ -317,40 +317,40 @@ export default function Navbar() {
           expireTimestampSecs: String(expire)
         };
       })();
-      
+
       let transferHash;
-      
+
       // Skip wallet adapter completely - use direct wallet API only
       try {
         console.log('📤 Using direct wallet API (bypassing adapter)...');
         console.log('📤 Payload:', transferPayload);
-        
+
         if (!window.aptos) {
           throw new Error('Petra wallet not detected. Please install Petra wallet.');
         }
-        
+
         if (!window.aptos.signAndSubmitTransaction) {
           throw new Error('Wallet API not available. Please reconnect your wallet.');
         }
-        
+
         // Ensure wallet is connected/authorized for the current site
         try {
           const isConnectedDirect = await window.aptos.isConnected?.();
           if (!isConnectedDirect) {
             await window.aptos.connect();
           }
-        } catch {}
-        
+        } catch { }
+
         // Use direct wallet API with updated payload shape
         const result = await window.aptos.signAndSubmitTransaction({ payload: transferPayload, options: txOptions });
-        
+
         if (!result || !result.hash) {
           throw new Error('Transaction failed - no hash returned from wallet');
         }
-        
+
         transferHash = result.hash;
         console.log('✅ Direct wallet API success:', transferHash);
-        
+
       } catch (walletError) {
         console.error('❌ Wallet transaction failed:', walletError);
         const msg = (() => {
@@ -380,16 +380,16 @@ export default function Navbar() {
         })();
         throw new Error(msg);
       }
-      
+
       if (!transferHash) {
         throw new Error('Transfer failed - no transaction hash');
       }
-      
+
       console.log('✅ APT sent to treasury:', transferHash);
-      
+
       // Step 2: Call backend to process deposit
       console.log('🏦 Processing deposit via backend...');
-      
+
       // Derive a normalized user address string (0x + 64 hex) for backend
       const normalizeAddr = (input) => {
         try {
@@ -411,7 +411,7 @@ export default function Navbar() {
       try {
         const accInfo = await window.aptos?.account?.();
         userAddrForBackend = normalizeAddr(accInfo?.address);
-      } catch {}
+      } catch { }
       if (!userAddrForBackend) {
         userAddrForBackend = normalizeAddr(account?.address);
       }
@@ -436,17 +436,17 @@ export default function Navbar() {
       }
 
       console.log('✅ Deposit processed:', result.transactionHash);
-      
+
       // Update local balance
       const currentBalance = parseFloat(userBalance || '0');
       const newBalance = (currentBalance + (amount * 100000000)).toString();
       dispatch(setBalance(newBalance));
-      
+
       notification.success(`Successfully deposited ${amount} APT! TX: ${transferHash.slice(0, 8)}...`);
       setDepositAmount("");
-      
+
       // Do not refresh from chain here; backend temp mode does not update on-chain balance
-      
+
     } catch (error) {
       console.error('❌ Deposit failed:', error);
       notification.error(`Deposit failed: ${error.message || 'Unknown error'}`);
@@ -468,10 +468,10 @@ export default function Navbar() {
         tournament => tournament.name.toLowerCase().includes(query)
       );
       const pages = MOCK_SEARCH_RESULTS.pages.filter(
-        page => page.name.toLowerCase().includes(query) || 
-               (page.description && page.description.toLowerCase().includes(query))
+        page => page.name.toLowerCase().includes(query) ||
+          (page.description && page.description.toLowerCase().includes(query))
       );
-      
+
       setSearchResults({ games, tournaments, pages });
     } else {
       setSearchResults(null);
@@ -504,28 +504,28 @@ export default function Navbar() {
   const handleProfileClick = () => {
     router.push("/profile");
   };
-  
+
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
     localStorage.setItem('darkMode', newMode.toString());
     // Here you would also apply the theme change to your app
   };
-  
+
   const markNotificationAsRead = (id) => {
-    setNotifications(prev => 
-      prev.map(n => n.id === id ? {...n, isRead: true} : n)
+    setNotifications(prev =>
+      prev.map(n => n.id === id ? { ...n, isRead: true } : n)
     );
     setUnreadNotifications(prev => Math.max(0, prev - 1));
   };
-  
+
   const clearAllNotifications = () => {
-    setNotifications(prev => prev.map(n => ({...n, isRead: true})));
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     setUnreadNotifications(0);
     setShowNotificationsPanel(false);
     notification.success("All notifications marked as read");
   };
-  
+
   const handleSearchIconClick = () => {
     setShowSearch(prev => !prev);
     if (!showSearch) {
@@ -535,7 +535,7 @@ export default function Navbar() {
       }, 100);
     }
   };
-  
+
   const handleSearchItemClick = (path) => {
     router.push(path);
     setShowSearch(false);
@@ -550,14 +550,14 @@ export default function Navbar() {
           const n = await window.aptos.network();
           if (n?.name) setWalletNetworkName(String(n.name).toLowerCase());
         }
-      } catch {}
+      } catch { }
     };
     readNetwork();
     const off = window?.aptos?.onNetworkChange?.((n) => {
-      try { setWalletNetworkName(String(n?.name || '').toLowerCase()); } catch {}
+      try { setWalletNetworkName(String(n?.name || '').toLowerCase()); } catch { }
     });
     return () => {
-      try { off && off(); } catch {}
+      try { off && off(); } catch { }
     };
   }, []);
 
@@ -568,16 +568,16 @@ export default function Navbar() {
       <div className="flex w-full items-center justify-between py-6 px-4 sm:px-10 md:px-20 lg:px-36">
         <div className="flex items-center">
           <a href="/" className="logo mr-6">
-          <Image
-            src="/PowerPlay.png"
-            alt="powerplay image"
-            width={172}
-            height={15}
+            <Image
+              src="/PowerPlay.png"
+              alt="powerplay image"
+              width={172}
+              height={15}
             />
           </a>
-          
+
           {/* Mobile menu button */}
-          <button 
+          <button
             className="md:hidden text-white p-1 rounded-lg hover:bg-purple-500/20 transition-colors"
             onClick={() => setShowMobileMenu(!showMobileMenu)}
             aria-label="Toggle mobile menu"
@@ -598,25 +598,25 @@ export default function Navbar() {
             </svg>
           </button>
         </div>
-        
+
         {/* Desktop Navigation Links */}
         <div className="hidden md:flex font-display gap-8 lg:gap-12 items-center">
           {navLinks.map(({ name, path, classes }, index) => (
             <div key={index} className="relative group">
-            <Link
+              <Link
                 className={`${path === pathname ? "text-transparent bg-clip-text bg-gradient-to-r from-red-magic to-blue-magic font-semibold" : classes} flex items-center gap-1 text-lg font-medium transition-all duration-200 hover:scale-105 whitespace-nowrap shrink-0`}
-              href={path}
-            >
-              {name}
-            </Link>
+                href={path}
+              >
+                {name}
+              </Link>
             </div>
           ))}
         </div>
-        
+
         <div className="flex items-center gap-2 md:gap-3">
           {/* Search Icon */}
           <div className="relative">
-            <button 
+            <button
               className="p-2 text-white/70 hover:text-white transition-colors rounded-full hover:bg-purple-500/20"
               onClick={handleSearchIconClick}
               aria-label="Search"
@@ -626,10 +626,10 @@ export default function Navbar() {
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
             </button>
-            
+
             {/* Search Panel */}
             {showSearch && (
-              <div 
+              <div
                 className="absolute right-0 mt-2 w-80 md:w-96 bg-[#1A0015]/95 backdrop-blur-md border border-purple-500/30 rounded-lg shadow-xl z-40 animate-fadeIn"
                 ref={searchPanelRef}
               >
@@ -643,14 +643,14 @@ export default function Navbar() {
                       placeholder="Search games, tournaments..."
                       className="w-full py-2 px-3 pr-10 bg-[#250020] border border-purple-500/20 rounded-md text-white focus:outline-none focus:border-purple-500"
                     />
-                    <svg 
-                      className="absolute right-3 top-2.5 text-white/50" 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="16" 
-                      height="16" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
+                    <svg
+                      className="absolute right-3 top-2.5 text-white/50"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
                       strokeWidth="2"
                     >
                       <circle cx="11" cy="11" r="8"></circle>
@@ -658,13 +658,13 @@ export default function Navbar() {
                     </svg>
                   </div>
                 </div>
-                
+
                 {searchQuery.length > 1 && (
                   <div className="max-h-96 overflow-y-auto">
-                    {(!searchResults || 
-                      (searchResults.games.length === 0 && 
-                       searchResults.tournaments.length === 0 && 
-                       searchResults.pages.length === 0)) ? (
+                    {(!searchResults ||
+                      (searchResults.games.length === 0 &&
+                        searchResults.tournaments.length === 0 &&
+                        searchResults.pages.length === 0)) ? (
                       <div className="p-4 text-center text-white/50">
                         No results found
                       </div>
@@ -675,7 +675,7 @@ export default function Navbar() {
                           <div className="p-2">
                             <h3 className="text-xs font-medium text-white/50 uppercase px-3 mb-1">Games</h3>
                             {searchResults.games.map(game => (
-                              <div 
+                              <div
                                 key={game.id}
                                 className="p-2 hover:bg-purple-500/10 rounded-md cursor-pointer mx-1"
                                 onClick={() => handleSearchItemClick(game.path)}
@@ -693,13 +693,13 @@ export default function Navbar() {
                             ))}
                           </div>
                         )}
-                        
+
                         {/* Tournaments */}
                         {searchResults.tournaments.length > 0 && (
                           <div className="p-2">
                             <h3 className="text-xs font-medium text-white/50 uppercase px-3 mb-1">Tournaments</h3>
                             {searchResults.tournaments.map(tournament => (
-                              <div 
+                              <div
                                 key={tournament.id}
                                 className="p-2 hover:bg-purple-500/10 rounded-md cursor-pointer mx-1"
                                 onClick={() => handleSearchItemClick(tournament.path)}
@@ -717,13 +717,13 @@ export default function Navbar() {
                             ))}
                           </div>
                         )}
-                        
+
                         {/* Pages */}
                         {searchResults.pages.length > 0 && (
                           <div className="p-2">
                             <h3 className="text-xs font-medium text-white/50 uppercase px-3 mb-1">Pages</h3>
                             {searchResults.pages.map(page => (
-                              <div 
+                              <div
                                 key={page.id}
                                 className="p-2 hover:bg-purple-500/10 rounded-md cursor-pointer mx-1"
                                 onClick={() => handleSearchItemClick(page.path)}
@@ -747,20 +747,20 @@ export default function Navbar() {
                     )}
                   </div>
                 )}
-                
+
                 {searchQuery.length > 0 && (
                   <div className="p-2 border-t border-purple-500/20 text-center">
                     <span className="text-xs text-white/50">
                       Press Enter to search for "{searchQuery}"
-                </span>
+                    </span>
                   </div>
                 )}
               </div>
             )}
           </div>
-        
+
           {/* Live Chat Toggle */}
-          <button 
+          <button
             onClick={() => setChatOpen(true)}
             className="p-2 text-white/70 hover:text-white transition-colors hidden md:block rounded-full hover:bg-purple-500/20"
             aria-label="Open live chat"
@@ -769,7 +769,7 @@ export default function Navbar() {
           </button>
 
           {/* Theme Toggle */}
-          <button 
+          <button
             onClick={toggleDarkMode}
             className="p-2 text-white/70 hover:text-white transition-colors hidden md:block rounded-full hover:bg-purple-500/20"
             aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
@@ -792,10 +792,10 @@ export default function Navbar() {
               </svg>
             )}
           </button>
-          
+
           {/* Notifications */}
           <div className="relative hidden md:block">
-            <button 
+            <button
               onClick={() => setShowNotificationsPanel(!showNotificationsPanel)}
               className="p-2 text-white/70 hover:text-white transition-colors relative rounded-full hover:bg-purple-500/20"
               aria-label="Notifications"
@@ -810,20 +810,20 @@ export default function Navbar() {
                 </span>
               )}
             </button>
-            
+
             {/* Notifications Panel */}
             {showNotificationsPanel && (
               <div className="absolute right-0 mt-2 w-80 bg-[#1A0015]/95 backdrop-blur-md border border-purple-500/30 rounded-lg shadow-xl z-30 animate-fadeIn">
                 <div className="p-3 border-b border-purple-500/20 flex justify-between items-center">
                   <h3 className="font-medium text-white">Notifications</h3>
-                  <button 
+                  <button
                     onClick={clearAllNotifications}
                     className="text-xs text-white/50 hover:text-white"
                   >
                     Mark all as read
                   </button>
                 </div>
-                
+
                 <div className="max-h-96 overflow-y-auto">
                   {notifications.length === 0 ? (
                     <div className="p-4 text-center text-white/50">
@@ -831,7 +831,7 @@ export default function Navbar() {
                     </div>
                   ) : (
                     notifications.map(notification => (
-                      <div 
+                      <div
                         key={notification.id}
                         className={`p-3 border-b border-purple-500/10 hover:bg-purple-500/5 cursor-pointer ${!notification.isRead ? 'bg-purple-900/10' : ''}`}
                         onClick={() => markNotificationAsRead(notification.id)}
@@ -848,7 +848,7 @@ export default function Navbar() {
                     ))
                   )}
                 </div>
-                
+
                 <div className="p-2 border-t border-purple-500/20 text-center">
                   <a href="/notifications" className="text-xs text-white/70 hover:text-white">
                     View all notifications
@@ -857,9 +857,9 @@ export default function Navbar() {
               </div>
             )}
           </div>
-          
 
-          
+
+
           {/* User Balance Display */}
           {isWalletReady && (
             <div className="flex items-center space-x-3">
@@ -879,16 +879,16 @@ export default function Navbar() {
               </div>
             </div>
           )}
-          
+
           {/* Aptos Wallet Button */}
           <AptosConnectWalletButton />
-  
+
         </div>
       </div>
       {chatOpen && (
         <LiveChat open={chatOpen} onClose={() => setChatOpen(false)} />
       )}
-      
+
       {/* Mobile Navigation Menu */}
       {showMobileMenu && (
         <div className="md:hidden bg-[#0A0008]/95 backdrop-blur-md p-4 border-t border-purple-500/20 animate-slideDown">
@@ -907,7 +907,7 @@ export default function Navbar() {
             {/* Switch to Testnet button removed - now handled by MainnetWarning component */}
             <div className="flex justify-between items-center py-2 px-3">
               <span className="text-white/70">Dark Mode</span>
-              <button 
+              <button
                 onClick={toggleDarkMode}
                 className="p-2 text-white/70 hover:text-white bg-purple-500/10 rounded-full flex items-center justify-center h-8 w-8"
               >
@@ -930,7 +930,7 @@ export default function Navbar() {
                 )}
               </button>
             </div>
-            
+
             {/* User Balance in Mobile Menu */}
             {isWalletReady && (
               <div className="pt-2 mt-2 border-t border-purple-500/10">
@@ -953,10 +953,10 @@ export default function Navbar() {
                 </div>
               </div>
             )}
-            
+
             <div className="pt-2 mt-2 border-t border-purple-500/10">
-              <a 
-                href="#support" 
+              <a
+                href="#support"
                 className="block py-2 px-3 text-white/80 hover:text-white hover:bg-purple-500/10 rounded-md"
                 onClick={() => setShowMobileMenu(false)}
               >
@@ -966,7 +966,7 @@ export default function Navbar() {
           </div>
         </div>
       )}
-      
+
       {/* Balance Management Modal (portal) */}
       {isClient && showBalanceModal && createPortal(
         <div
@@ -990,7 +990,7 @@ export default function Navbar() {
                 </svg>
               </button>
             </div>
-            
+
             {/* Current Balance */}
             <div className="mb-4 p-3 bg-gradient-to-r from-green-900/20 to-green-800/10 rounded-lg border border-green-800/30">
               <span className="text-sm text-gray-300">Current Balance:</span>
@@ -998,7 +998,7 @@ export default function Navbar() {
                 {isLoadingBalance ? 'Loading...' : `${(parseFloat(userBalance) / 100000000).toFixed(3)} APT`}
               </div>
             </div>
-            
+
             {/* Deposit Section */}
             <div className="mb-6">
               <h4 className="text-sm font-medium text-white mb-2">Deposit APT</h4>
@@ -1079,7 +1079,7 @@ export default function Navbar() {
                 </p>
               )}
             </div>
-            
+
             {/* Refresh Balance */}
             <div className="mt-6">
               <button
@@ -1102,7 +1102,7 @@ export default function Navbar() {
         </div>,
         document.body
       )}
-      
+
       <div className="w-full h-[2px] magic-gradient overflow-hidden"></div>
     </nav>
   );

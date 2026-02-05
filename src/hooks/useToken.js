@@ -7,12 +7,12 @@ export const useToken = (address) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Mock balance for Aptos testnet
+  // Mock balance for Aptos mainnet
   useEffect(() => {
     if (address) {
       // Simulate loading
       setIsLoading(true);
-      
+
       // Mock balance data
       setTimeout(() => {
         setBalance((Math.random() * 1000 + 100).toFixed(2));
@@ -28,10 +28,10 @@ export const useToken = (address) => {
     try {
       // Simulate transfer delay
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       // Mock successful transfer
       setBalance(prev => (parseFloat(prev) - parseFloat(amount)).toFixed(2));
-      
+
       return true;
     } catch (err) {
       console.error('Transfer error:', err);
@@ -44,13 +44,13 @@ export const useToken = (address) => {
 
   const refresh = useCallback(async () => {
     if (!address) return;
-    
+
     try {
       setIsLoading(true);
-      
+
       // Simulate refresh delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Mock refreshed balance
       setBalance((Math.random() * 1000 + 100).toFixed(2));
     } catch (err) {

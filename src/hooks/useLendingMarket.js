@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 
-// Mock data for Aptos testnet lending market
+// Mock data for Aptos mainnet lending market
 const MOCK_LENDING_DATA = {
   userDeposits: [
     {
@@ -40,13 +40,13 @@ export const useLendingMarket = () => {
   const [marketRates, setMarketRates] = useState(MOCK_LENDING_DATA.marketRates);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock functions for Aptos testnet
+  // Mock functions for Aptos mainnet
   const depositAsset = async (asset, amount) => {
     setIsLoading(true);
     try {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Add to deposits
       const newDeposit = {
         symbol: asset.symbol,
@@ -55,7 +55,7 @@ export const useLendingMarket = () => {
         apy: asset.apy || '8.2',
         iconColor: asset.iconColor || '#F1324D'
       };
-      
+
       setUserDeposits(prev => [...prev, newDeposit]);
       return { success: true, message: `Successfully deposited ${amount} ${asset.symbol}` };
     } catch (error) {
@@ -70,14 +70,14 @@ export const useLendingMarket = () => {
     try {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Remove from deposits
-      setUserDeposits(prev => 
-        prev.filter(deposit => 
+      setUserDeposits(prev =>
+        prev.filter(deposit =>
           !(deposit.symbol === asset.symbol && parseFloat(deposit.amount) >= parseFloat(amount))
         )
       );
-      
+
       return { success: true, message: `Successfully withdrawn ${amount} ${asset.symbol}` };
     } catch (error) {
       return { success: false, message: error.message };
@@ -91,7 +91,7 @@ export const useLendingMarket = () => {
     try {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Add to borrows
       const newBorrow = {
         symbol: asset.symbol,
@@ -100,7 +100,7 @@ export const useLendingMarket = () => {
         apy: asset.apy || '15.2',
         iconColor: asset.iconColor || '#F1324D'
       };
-      
+
       setUserBorrows(prev => [...prev, newBorrow]);
       return { success: true, message: `Successfully borrowed ${amount} ${asset.symbol}` };
     } catch (error) {
@@ -115,14 +115,14 @@ export const useLendingMarket = () => {
     try {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Remove from borrows
-      setUserBorrows(prev => 
-        prev.filter(borrow => 
+      setUserBorrows(prev =>
+        prev.filter(borrow =>
           !(borrow.symbol === asset.symbol && parseFloat(borrow.amount) >= parseFloat(amount))
         )
       );
-      
+
       return { success: true, message: `Successfully repaid ${amount} ${asset.symbol}` };
     } catch (error) {
       return { success: false, message: error.message };

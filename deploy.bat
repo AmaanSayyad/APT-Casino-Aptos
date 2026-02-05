@@ -9,7 +9,7 @@ set "SCRIPT_DIR=%~dp0"
 set "PROJECT_ROOT=%SCRIPT_DIR%"
 
 REM Default values
-set "NETWORK=testnet"
+set "NETWORK=mainnet"
 set "DEPLOY_FRONTEND=true"
 set "DEPLOY_CONTRACTS=true"
 set "VERBOSE=false"

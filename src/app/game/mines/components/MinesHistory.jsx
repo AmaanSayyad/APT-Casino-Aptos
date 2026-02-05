@@ -10,7 +10,7 @@ const MinesHistory = ({ gameHistory = [], userStats = {} }) => {
   // State for sorting
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
-  
+
   // Default user stats if none provided
   const defaultStats = {
     totalPlayed: 0,
@@ -25,7 +25,7 @@ const MinesHistory = ({ gameHistory = [], userStats = {} }) => {
 
   // Use real game history data from props
   const history = gameHistory.length > 0 ? gameHistory : [];
-  
+
   // Handle sorting
   const handleSort = (field) => {
     if (sortField === field) {
@@ -35,13 +35,13 @@ const MinesHistory = ({ gameHistory = [], userStats = {} }) => {
       setSortDirection('asc');
     }
   };
-  
+
   // Sort icon component
   const SortIcon = ({ field }) => {
     if (sortField !== field) return <FaSort className="text-white/30 ml-1" size={10} />;
     return sortDirection === 'asc' ? <FaSortUp className="text-purple-400 ml-1" size={12} /> : <FaSortDown className="text-purple-400 ml-1" size={12} />;
   };
-  
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -55,10 +55,10 @@ const MinesHistory = ({ gameHistory = [], userStats = {} }) => {
     hidden: { opacity: 0, x: -10 },
     visible: { opacity: 1, x: 0 }
   };
-  
+
   const cardHoverVariants = {
-    hover: { 
-      y: -5, 
+    hover: {
+      y: -5,
       boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
       transition: { duration: 0.2 }
     }
@@ -70,7 +70,7 @@ const MinesHistory = ({ gameHistory = [], userStats = {} }) => {
       <div className="absolute top-0 right-0 w-40 h-40 bg-purple-600/5 rounded-full blur-3xl -z-1"></div>
       <div className="absolute bottom-0 left-0 w-40 h-40 bg-blue-600/5 rounded-full blur-3xl -z-1"></div>
       <div className="absolute top-1/2 left-1/3 w-20 h-20 bg-pink-500/5 rounded-full blur-2xl -z-1"></div>
-      
+
       {/* Header with shimmer effect */}
       <div className="relative overflow-hidden mb-5">
         <div className="flex items-center justify-between">
@@ -87,17 +87,17 @@ const MinesHistory = ({ gameHistory = [], userStats = {} }) => {
             <span className="text-white/70"> Games</span>
           </div>
         </div>
-        
+
         {/* Animated underline */}
         <div className="h-px mt-3 bg-gradient-to-r from-purple-600/50 via-blue-600/30 to-transparent relative overflow-hidden">
-          <motion.div 
+          <motion.div
             className="h-full w-20 bg-gradient-to-r from-transparent via-white/70 to-transparent absolute"
-            animate={{ 
+            animate={{
               x: ["0%", "100%"],
               opacity: [0, 1, 0]
             }}
-            transition={{ 
-              repeat: Infinity, 
+            transition={{
+              repeat: Infinity,
               duration: 2,
               ease: "linear"
             }}
@@ -107,76 +107,75 @@ const MinesHistory = ({ gameHistory = [], userStats = {} }) => {
 
       {/* User Stats - Enhanced Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-3 mb-5">
-        <motion.div 
+        <motion.div
           className="bg-gradient-to-br from-purple-900/30 to-purple-800/10 rounded-xl p-3 border border-purple-800/30 shadow-md"
           whileHover="hover"
           variants={cardHoverVariants}
         >
           <div className="text-xs text-white/60 mb-1 font-sans">Games Played</div>
           <div className="text-sm font-semibold text-white flex items-center mt-1">
-            <FaChartBar className="mr-1.5 text-blue-400" /> 
+            <FaChartBar className="mr-1.5 text-blue-400" />
             <span className="font-display">{stats.totalPlayed}</span>
           </div>
         </motion.div>
-        
-        <motion.div 
+
+        <motion.div
           className="bg-gradient-to-br from-purple-900/30 to-purple-800/10 rounded-xl p-3 border border-purple-800/30 shadow-md"
           whileHover="hover"
           variants={cardHoverVariants}
         >
           <div className="text-xs text-white/60 mb-1 font-sans">Games Won</div>
           <div className="text-sm font-semibold text-white flex items-center mt-1">
-            <FaTrophy className="mr-1.5 text-yellow-400" /> 
+            <FaTrophy className="mr-1.5 text-yellow-400" />
             <span className="font-display">{stats.totalWon}</span>
           </div>
         </motion.div>
-        
-        <motion.div 
+
+        <motion.div
           className="bg-gradient-to-br from-purple-900/30 to-purple-800/10 rounded-xl p-3 border border-purple-800/30 shadow-md"
           whileHover="hover"
           variants={cardHoverVariants}
         >
           <div className="text-xs text-white/60 mb-1 font-sans">Win Rate</div>
           <div className="text-sm font-semibold text-white flex items-center mt-1">
-            <FaStar className="mr-1.5 text-orange-400" /> 
+            <FaStar className="mr-1.5 text-orange-400" />
             <span className="font-display">{stats.winRate}</span>
           </div>
         </motion.div>
-        
-        <motion.div 
+
+        <motion.div
           className="bg-gradient-to-br from-purple-900/30 to-purple-800/10 rounded-xl p-3 border border-purple-800/30 shadow-md"
           whileHover="hover"
           variants={cardHoverVariants}
         >
           <div className="text-xs text-white/60 mb-1 font-sans">Biggest Win</div>
           <div className="text-sm font-semibold text-green-400 flex items-center mt-1">
-            <GiDiamondTrophy className="mr-1.5" /> 
+            <GiDiamondTrophy className="mr-1.5" />
             <span className="font-display">{stats.biggestWin}</span>
           </div>
         </motion.div>
-        
-        <motion.div 
+
+        <motion.div
           className="bg-gradient-to-br from-purple-900/30 to-purple-800/10 rounded-xl p-3 border border-purple-800/30 shadow-md"
           whileHover="hover"
           variants={cardHoverVariants}
         >
           <div className="text-xs text-white/60 mb-1 font-sans">Avg Multiplier</div>
           <div className="text-sm font-semibold text-yellow-400 flex items-center mt-1">
-            <HiOutlineLightningBolt className="mr-1.5" /> 
+            <HiOutlineLightningBolt className="mr-1.5" />
             <span className="font-display">{stats.avgMultiplier}</span>
           </div>
         </motion.div>
-        
-        <motion.div 
+
+        <motion.div
           className="bg-gradient-to-br from-purple-900/30 to-purple-800/10 rounded-xl p-3 border border-purple-800/30 shadow-md"
           whileHover="hover"
           variants={cardHoverVariants}
         >
           <div className="text-xs text-white/60 mb-1 font-sans">Profit/Loss</div>
-          <div className={`text-sm font-semibold flex items-center mt-1 ${
-            stats.profitLoss.startsWith('-') ? 'text-red-400' : 'text-green-400'
-          }`}>
-            <GiGoldBar className="mr-1.5" /> 
+          <div className={`text-sm font-semibold flex items-center mt-1 ${stats.profitLoss.startsWith('-') ? 'text-red-400' : 'text-green-400'
+            }`}>
+            <GiGoldBar className="mr-1.5" />
             <span className="font-display">{stats.profitLoss}</span>
           </div>
         </motion.div>
@@ -186,37 +185,37 @@ const MinesHistory = ({ gameHistory = [], userStats = {} }) => {
       <div className="bg-black/20 rounded-xl border border-purple-800/20 p-4 shadow-inner">
         {/* Header */}
         <div className="grid grid-cols-7 gap-2 pb-3 text-xs font-medium border-b border-purple-800/30 px-2">
-          <div 
+          <div
             className="flex items-center cursor-pointer hover:text-white/90 transition-colors text-white/70"
             onClick={() => handleSort('id')}
           >
             Game <SortIcon field="id" />
           </div>
-          <div 
+          <div
             className="flex items-center cursor-pointer hover:text-white/90 transition-colors text-white/70"
             onClick={() => handleSort('mines')}
           >
             Mines <SortIcon field="mines" />
           </div>
-          <div 
+          <div
             className="flex items-center cursor-pointer hover:text-white/90 transition-colors text-white/70"
             onClick={() => handleSort('bet')}
           >
             Bet <SortIcon field="bet" />
           </div>
-          <div 
+          <div
             className="flex items-center cursor-pointer hover:text-white/90 transition-colors text-white/70"
             onClick={() => handleSort('multiplier')}
           >
             Multiplier <SortIcon field="multiplier" />
           </div>
-          <div 
+          <div
             className="flex items-center cursor-pointer hover:text-white/90 transition-colors text-white/70"
             onClick={() => handleSort('payout')}
           >
             Payout <SortIcon field="payout" />
           </div>
-          <div 
+          <div
             className="flex items-center cursor-pointer hover:text-white/90 transition-colors text-white/70"
             onClick={() => handleSort('time')}
           >
@@ -224,9 +223,9 @@ const MinesHistory = ({ gameHistory = [], userStats = {} }) => {
           </div>
           <div className="text-white/70">TX</div>
         </div>
-        
+
         {/* History Items */}
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -236,23 +235,21 @@ const MinesHistory = ({ gameHistory = [], userStats = {} }) => {
             <motion.div
               key={game.id}
               variants={itemVariants}
-              whileHover={{ 
-                scale: 1.02, 
+              whileHover={{
+                scale: 1.02,
                 boxShadow: "0 8px 20px rgba(0, 0, 0, 0.2)",
                 y: -2
               }}
-              className={`grid grid-cols-7 gap-2 p-3 text-xs rounded-lg transition-all ${
-                game.outcome === 'win' 
-                  ? 'bg-gradient-to-r from-green-900/20 to-green-800/5 border border-green-800/30' 
+              className={`grid grid-cols-7 gap-2 p-3 text-xs rounded-lg transition-all ${game.outcome === 'win'
+                  ? 'bg-gradient-to-r from-green-900/20 to-green-800/5 border border-green-800/30'
                   : 'bg-gradient-to-r from-red-900/20 to-red-800/5 border border-red-800/30'
-              } shadow-sm`}
+                } shadow-sm`}
             >
               <div className="flex items-center">
-                <div className={`w-5 h-5 rounded-full mr-1.5 flex items-center justify-center ${
-                  game.outcome === 'win' 
-                    ? 'bg-green-900/40 text-green-400 border border-green-800/30' 
+                <div className={`w-5 h-5 rounded-full mr-1.5 flex items-center justify-center ${game.outcome === 'win'
+                    ? 'bg-green-900/40 text-green-400 border border-green-800/30'
                     : 'bg-red-900/40 text-red-400 border border-red-800/30'
-                }`}>
+                  }`}>
                   {game.outcome === 'win' ? '✓' : '✗'}
                 </div>
                 <span className="text-white/90 font-medium">#{game.id}</span>
@@ -290,7 +287,7 @@ const MinesHistory = ({ gameHistory = [], userStats = {} }) => {
               <div className="flex items-center">
                 {game.txHash ? (
                   <a
-                    href={`https://explorer.aptoslabs.com/txn/${game.txHash}?network=testnet`}
+                    href={`https://explorer.aptoslabs.com/txn/${game.txHash}?network=mainnet`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-400 hover:text-blue-300 underline"
@@ -305,7 +302,7 @@ const MinesHistory = ({ gameHistory = [], userStats = {} }) => {
           ))}
         </motion.div>
       </div>
-      
+
       {/* Empty State - Enhanced */}
       {history.length === 0 && (
         <div className="text-center py-16 px-4">

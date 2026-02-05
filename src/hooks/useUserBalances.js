@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 
-// Mock data for Aptos testnet
+// Mock data for Aptos mainnet
 const MOCK_BALANCES = {
   native: {
     symbol: 'APT',
@@ -42,10 +42,10 @@ export const useUserBalances = () => {
   // Mock function to refresh balances
   const refreshBalances = async () => {
     setBalances(prev => ({ ...prev, loading: true }));
-    
+
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     setBalances({
       ...MOCK_BALANCES,
       loading: false

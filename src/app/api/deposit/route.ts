@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Aptos, AptosConfig, Network, Ed25519PrivateKey, Account } from '@aptos-labs/ts-sdk';
 import { TREASURY_ADDRESS as FRONT_TREASURY_ADDRESS } from '@/lib/aptos';
 
-const config = new AptosConfig({ network: Network.TESTNET });
+const config = new AptosConfig({ network: Network.MAINNET });
 const aptos = new Aptos(config);
 
 export async function POST(request: NextRequest) {
@@ -60,13 +60,13 @@ export async function POST(request: NextRequest) {
       };
       const treasuryEnv = process.env.NEXT_PUBLIC_TREASURY_ADDRESS || process.env.NEXT_PUBLIC_CASINO_MODULE_ADDRESS || FRONT_TREASURY_ADDRESS;
       const treasuryAddress = normalize(treasuryEnv!);
-      
+
       // Check if transaction involves treasury address
       let isValidTransfer = false;
       if (transaction.payload && transaction.payload.type === 'entry_function_payload') {
         const payload = transaction.payload as any;
-        if (payload.function === '0x1::aptos_account::transfer' || 
-            payload.function === '0x1::coin::transfer') {
+        if (payload.function === '0x1::aptos_account::transfer' ||
+          payload.function === '0x1::coin::transfer') {
           // Check if recipient is treasury
           const recipientRaw = payload.arguments?.[0];
           const recipient = normalize(recipientRaw);
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
       userAddress,
       amount: depositAmount,
       transactionHash: committedTxn.hash,
-      explorerUrl: `https://explorer.aptoslabs.com/txn/${committedTxn.hash}?network=testnet`,
+      explorerUrl: `https://explorer.aptoslabs.com/txn/${committedTxn.hash}?network=mainnet`,
     });
 
   } catch (error: any) {

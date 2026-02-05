@@ -5,7 +5,7 @@ dotenv.config();
 
 async function deployContract() {
   try {
-    const config = new AptosConfig({ network: Network.TESTNET });
+    const config = new AptosConfig({ network: Network.MAINNET });
     const aptos = new Aptos(config);
 
     // Create deployer account from private key
@@ -34,7 +34,7 @@ async function deployContract() {
     });
 
     console.log('Contracts deployed successfully!');
-    console.log('Explorer URL:', `https://explorer.aptoslabs.com/txn/${committedTxn.hash}?network=testnet`);
+    console.log('Explorer URL:', `https://explorer.aptoslabs.com/txn/${committedTxn.hash}?network=mainnet`);
 
   } catch (error) {
     console.error('Error deploying contracts:', error);

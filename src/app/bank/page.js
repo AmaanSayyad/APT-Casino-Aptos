@@ -8,9 +8,9 @@ import LendingTable from "@/components/LendingTable";
 import Image from "next/image";
 import { FaChartLine, FaHistory, FaInfoCircle, FaExchangeAlt, FaCoins, FaWallet, FaLock, FaUnlock } from "react-icons/fa";
 
-  // Assets for borrowing on Aptos testnet only
+// Assets for borrowing on Aptos testnet only
 const BORROW_ASSETS = {
-  aptos_testnet: [
+  aptos_mainnet: [
     {
       symbol: "APT",
       name: "Aptos Coin",
@@ -28,7 +28,7 @@ const MOCK_TRANSACTIONS = [
 ];
 
 export default function Bank() {
-  const [chainId, setChainId] = useState('aptos_testnet'); // Default to Aptos testnet
+  setChainId('mainnet');
   const [assets, setAssets] = useState([]);
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,7 +42,7 @@ export default function Bank() {
     totalLocked: 3200000
   });
   const isDev = process.env.NODE_ENV === 'development';
-  
+
   // Format currency with dollar sign
   const formatCurrency = useCallback((value) => {
     return new Intl.NumberFormat('en-US', {
@@ -52,18 +52,18 @@ export default function Bank() {
       maximumFractionDigits: 2
     }).format(value);
   }, []);
-  
+
   // Format large numbers with commas
   const formatNumber = useCallback((value) => {
     return new Intl.NumberFormat('en-US').format(value);
   }, []);
-  
+
   useEffect(() => {
     setIsClient(true);
-    
+
     // In development mode, use mock data
     if (isDev) {
-      setChainId('aptos_testnet'); // Aptos testnet for development
+      setChainId('mainnet'); // Aptos mainnet for development
       setAssets([
         {
           symbol: "APT",
@@ -93,21 +93,20 @@ export default function Bank() {
           available: "$95,000"
         }
       ]);
-      
+
       // Set mock transactions
       setTransactions(MOCK_TRANSACTIONS);
-      
+
       setIsLoading(false);
       return;
     }
-    
-    // Load Aptos testnet data
+
+    // Load Aptos mainnet data
     const loadChainData = async () => {
       try {
-        // Set to Aptos testnet
-        setChainId('aptos_testnet');
-        
-        // Set mock lending market data for Aptos testnet
+        setChainId('mainnet');
+
+        // Set mock lending market data for Aptos mainnet
         setAssets([
           {
             symbol: "APT",
@@ -128,61 +127,61 @@ export default function Bank() {
             available: "$320,000"
           }
         ]);
-        
+
         // Load transaction history
         setTransactions(MOCK_TRANSACTIONS);
-        
+
         setIsLoading(false);
       } catch (err) {
         console.warn("Failed to load chain data:", err);
         setIsLoading(false);
       }
     };
-    
+
     loadChainData();
   }, [isDev]);
-  
+
   // Get appropriate borrow assets for Aptos testnet
-  const borrowAssets = BORROW_ASSETS.aptos_testnet;
-  
+  const borrowAssets = BORROW_ASSETS.aptos_mainnet;
+
   // Animated number component for stats
   const AnimatedNumber = ({ value, prefix = '', suffix = '', duration = 2000 }) => {
     const [displayValue, setDisplayValue] = useState(0);
-    
+
     useEffect(() => {
       let startValue = 0;
       const endValue = parseFloat(value);
       const startTime = Date.now();
-      
+
       const updateValue = () => {
         const now = Date.now();
         const elapsed = now - startTime;
-        
+
         if (elapsed >= duration) {
           setDisplayValue(endValue);
           return;
         }
-        
+
         const progress = elapsed / duration;
         const currentValue = startValue + progress * (endValue - startValue);
         setDisplayValue(currentValue);
         requestAnimationFrame(updateValue);
       };
-      
+
       requestAnimationFrame(updateValue);
-      
+
       return () => {
         startValue = displayValue;
       };
     }, [value, duration]);
-    
+
     return (
       <span>
         {prefix}{typeof displayValue === 'number' ? displayValue.toFixed(2) : displayValue}{suffix}
       </span>
     );
   };
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-sharp-black to-[#150012] text-white">
       <div className="container mx-auto px-4 lg:px-8 pt-32 pb-16">
@@ -190,10 +189,10 @@ export default function Bank() {
         {showNetworkBanner && (
           <div className="bg-gradient-to-r from-red-magic/80 to-blue-magic/80 py-2 px-4 text-center relative mb-8 rounded-lg">
             <p className="text-white text-sm">
-              Connected to Aptos Testnet. 
+              Connected to Aptos Mainnet.
               <button className="underline ml-2">Switch Network</button>
             </p>
-            <button 
+            <button
               className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white"
               onClick={() => setShowNetworkBanner(false)}
             >
@@ -201,36 +200,36 @@ export default function Bank() {
             </button>
           </div>
         )}
-        
+
         <div className="mb-10 text-center">
           <HeaderText
-            header="APT Casino Bank" 
+            header="APT Casino Bank"
             description="Manage your assets, deposit collateral, and borrow tokens to play your favorite casino games"
           />
         </div>
-        
+
         {/* Main Tabs */}
         <div className="mb-8">
           <div className="flex border-b border-white/10 overflow-x-auto custom-scrollbar">
-            <button 
+            <button
               className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${activeTab === 'swap' ? 'text-white border-b-2 border-blue-magic' : 'text-white/50 hover:text-white/80'}`}
               onClick={() => setActiveTab('swap')}
             >
               <FaExchangeAlt /> Swap
             </button>
-            <button 
+            <button
               className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${activeTab === 'borrow' ? 'text-white border-b-2 border-blue-magic' : 'text-white/50 hover:text-white/80'}`}
               onClick={() => setActiveTab('borrow')}
             >
               <FaUnlock /> Borrow
             </button>
-            <button 
+            <button
               className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${activeTab === 'lend' ? 'text-white border-b-2 border-blue-magic' : 'text-white/50 hover:text-white/80'}`}
               onClick={() => setActiveTab('lend')}
             >
               <FaLock /> Lend
             </button>
-            <button 
+            <button
               className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${activeTab === 'history' ? 'text-white border-b-2 border-blue-magic' : 'text-white/50 hover:text-white/80'}`}
               onClick={() => setActiveTab('history')}
             >
@@ -238,7 +237,7 @@ export default function Bank() {
             </button>
           </div>
         </div>
-        
+
         {/* Tab Content */}
         <div className="mb-12">
           {activeTab === 'swap' && (
@@ -246,13 +245,13 @@ export default function Bank() {
               <div className="max-w-2xl mx-auto mb-12">
                 <div className="bg-gradient-to-r p-[1px] from-red-magic to-blue-magic rounded-xl">
                   {/* Aptos Testnet Only - No Uniswap Integration */}
-        <div className="bg-gray-800 rounded-lg p-6 text-center">
-          <h3 className="text-xl font-semibold text-white mb-2">Aptos Testnet Only</h3>
-          <p className="text-gray-400">This application works exclusively with Aptos testnet</p>
-        </div>
+                  <div className="bg-gray-800 rounded-lg p-6 text-center">
+                    <h3 className="text-xl font-semibold text-white mb-2">Aptos Mainnet</h3>
+                    <p className="text-gray-400">This application works exclusively with Aptos mainnet</p>
+                  </div>
                 </div>
               </div>
-              
+
               {/* Market Trends - Only shown in swap tab */}
               <div className="mb-12 p-[1px] bg-gradient-to-r from-red-magic/50 to-blue-magic/50 rounded-xl">
                 <div className="bg-[#1A0015] rounded-xl p-6">
@@ -260,14 +259,14 @@ export default function Bank() {
                     <FaChartLine className="text-blue-magic mr-2" />
                     <h2 className="text-xl font-display font-medium">Market Trends</h2>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-[#250020] p-4 rounded-lg hover:bg-[#350030] transition-colors">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-white/70 text-sm">APTC Price</span>
                         <div className="flex items-center">
                           <div className="h-2 w-16 bg-[#120010] rounded-full overflow-hidden">
-                            <div 
+                            <div
                               className="h-full bg-gradient-to-r from-red-magic to-blue-magic"
                               style={{ width: `${Math.min(Math.abs(marketTrends.aptc24hChange), 100)}%` }}
                             ></div>
@@ -283,7 +282,7 @@ export default function Bank() {
                         </span>
                       </div>
                     </div>
-                    
+
                     <div className="bg-[#250020] p-4 rounded-lg hover:bg-[#350030] transition-colors">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-white/70 text-sm">Market Cap</span>
@@ -293,7 +292,7 @@ export default function Bank() {
                         <AnimatedNumber value={marketTrends.marketCap / 1000000} suffix="M" prefix="$" />
                       </div>
                     </div>
-                    
+
                     <div className="bg-[#250020] p-4 rounded-lg hover:bg-[#350030] transition-colors">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-white/70 text-sm">Total Value Locked</span>
@@ -303,7 +302,7 @@ export default function Bank() {
                         <AnimatedNumber value={marketTrends.totalLocked / 1000000} suffix="M" prefix="$" />
                       </div>
                     </div>
-                    
+
                     <div className="bg-[#250020] p-4 rounded-lg hover:bg-[#350030] transition-colors">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-white/70 text-sm">APY Range</span>
@@ -315,14 +314,14 @@ export default function Bank() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Stats Overview - Only shown in swap tab */}
               <div className="mb-12">
                 <StatsOverview />
               </div>
             </>
           )}
-          
+
           {activeTab === 'borrow' && (
             <div>
               <p className="text-white/70 mb-6">Borrow tokens with your deposited collateral. Maintain a healthy collateral ratio to avoid liquidation.</p>
@@ -333,18 +332,18 @@ export default function Bank() {
               </div>
             </div>
           )}
-          
+
           {activeTab === 'lend' && (
             <div>
               <p className="text-white/70 mb-6">Deposit collateral to earn interest and unlock borrowing power. The more you deposit, the more you can borrow.</p>
               <LendingTable assets={assets} isLoading={isLoading} />
             </div>
           )}
-          
+
           {activeTab === 'history' && (
             <div>
               <p className="text-white/70 mb-6">Your transaction history in the APT Casino Bank. All transactions are recorded on the blockchain for transparency.</p>
-              
+
               {transactions.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
@@ -397,7 +396,7 @@ export default function Bank() {
             </div>
           )}
         </div>
-        
+
         {/* Information Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           <div className="p-[1px] bg-gradient-to-r from-red-magic/30 to-blue-magic/30 rounded-xl hover:from-red-magic hover:to-blue-magic transition-all duration-300">
@@ -425,7 +424,7 @@ export default function Bank() {
                   <span className="text-green-500">4.8% APY</span>
                 </li>
               </ul>
-              <button 
+              <button
                 onClick={() => setActiveTab('lend')}
                 className="text-sm bg-[#250020] hover:bg-[#350030] transition-colors py-2 px-4 rounded-lg flex items-center gap-2"
               >
@@ -433,7 +432,7 @@ export default function Bank() {
               </button>
             </div>
           </div>
-          
+
           <div className="p-[1px] bg-gradient-to-r from-red-magic/30 to-blue-magic/30 rounded-xl hover:from-red-magic hover:to-blue-magic transition-all duration-300">
             <div className="bg-[#1A0015] rounded-xl p-6 h-full">
               <div className="flex items-center mb-4">

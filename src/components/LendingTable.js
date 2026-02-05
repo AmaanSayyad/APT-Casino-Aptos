@@ -7,14 +7,14 @@ const AssetRow = ({ asset, onDeposit, onWithdraw, depositData, isConnected }) =>
   const [depositAmount, setDepositAmount] = useState('');
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
-  
+
   // Format percentage
   const formatPercent = (percent) => {
-    return typeof percent === 'string' && percent.includes('%') 
-      ? percent 
+    return typeof percent === 'string' && percent.includes('%')
+      ? percent
       : `${parseFloat(percent || 0).toFixed(2)}%`;
   };
-  
+
   const handleDeposit = () => {
     if (depositAmount && parseFloat(depositAmount) > 0) {
       onDeposit(asset, depositAmount);
@@ -22,17 +22,17 @@ const AssetRow = ({ asset, onDeposit, onWithdraw, depositData, isConnected }) =>
       setIsDepositModalOpen(false);
     }
   };
-  
+
   const handleWithdraw = () => {
     onWithdraw(asset, depositData?.amount || 0);
     setIsWithdrawModalOpen(false);
   };
-  
+
   return (
     <tr className="border-b border-white/5 hover:bg-white/5 transition-colors">
       <td className="py-5 px-4">
         <div className="flex items-center">
-          <div 
+          <div
             className="w-8 h-8 rounded-full mr-3 flex items-center justify-center text-white"
             style={{ backgroundColor: asset.iconColor }}
           >
@@ -56,20 +56,20 @@ const AssetRow = ({ asset, onDeposit, onWithdraw, depositData, isConnected }) =>
       </td>
       <td className="py-5 px-4">
         <div className="flex gap-2 justify-end">
-          <GradientBorderButton 
+          <GradientBorderButton
             onClick={() => setIsWithdrawModalOpen(true)}
             disabled={!isConnected || !depositData || parseFloat(depositData?.amount || 0) <= 0}
           >
             Withdraw
           </GradientBorderButton>
-          <GradientBgButton 
+          <GradientBgButton
             onClick={() => setIsDepositModalOpen(true)}
             disabled={!isConnected}
           >
             Deposit
           </GradientBgButton>
         </div>
-        
+
         {/* Deposit Modal */}
         {isDepositModalOpen && (
           <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
@@ -101,7 +101,7 @@ const AssetRow = ({ asset, onDeposit, onWithdraw, depositData, isConnected }) =>
             </div>
           </div>
         )}
-        
+
         {/* Withdraw Modal */}
         {isWithdrawModalOpen && (
           <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
@@ -137,10 +137,10 @@ const LendingTable = ({ assets = [], isLoading = false }) => {
   const [userDeposits, setUserDeposits] = useState({});
   const [isPending, setIsPending] = useState(false);
   const isDev = process.env.NODE_ENV === 'development';
-  
+
   useEffect(() => {
     setIsClient(true);
-    
+
     // In development mode, mock connected state and deposits
     if (isDev) {
       setIsConnected(true);
@@ -155,13 +155,13 @@ const LendingTable = ({ assets = [], isLoading = false }) => {
       setUserDeposits(mockDeposits);
       return;
     }
-    
+
     // Load connection state for Aptos
     const loadConnectionState = async () => {
       try {
-        // Set connected state for Aptos testnet
+        // Set connected state for Aptos mainnet
         setIsConnected(true);
-        
+
         // Try to load user deposits
         try {
           const { default: useLendingMarket } = await import('../hooks/useLendingMarket');
@@ -176,10 +176,10 @@ const LendingTable = ({ assets = [], isLoading = false }) => {
         console.warn("Failed to load wallet connection state:", err);
       }
     };
-    
+
     loadConnectionState();
   }, [isDev, assets]);
-  
+
   const handleDeposit = async (asset, amount) => {
     if (!isConnected) {
       // Show Aptos wallet connection message
@@ -188,14 +188,14 @@ const LendingTable = ({ assets = [], isLoading = false }) => {
       }
       return;
     }
-    
+
     try {
       setIsPending(true);
-      
+
       // In development mode, just simulate a deposit
       if (isDev) {
         await new Promise(resolve => setTimeout(resolve, 1000)); // Fake delay
-        
+
         // Update the mock deposit
         setUserDeposits(prev => ({
           ...prev,
@@ -204,7 +204,7 @@ const LendingTable = ({ assets = [], isLoading = false }) => {
             value: parseFloat(prev[asset.symbol]?.value || 0) + parseFloat(amount) * 10
           }
         }));
-        
+
         alert(`Successfully deposited ${amount} ${asset.symbol}`);
       } else {
         // In production, use the actual deposit function
@@ -222,7 +222,7 @@ const LendingTable = ({ assets = [], isLoading = false }) => {
       setIsPending(false);
     }
   };
-  
+
   const handleWithdraw = async (asset, amount) => {
     if (!isConnected) {
       // Show Aptos wallet connection message
@@ -231,14 +231,14 @@ const LendingTable = ({ assets = [], isLoading = false }) => {
       }
       return;
     }
-    
+
     try {
       setIsPending(true);
-      
+
       // In development mode, just simulate a withdrawal
       if (isDev) {
         await new Promise(resolve => setTimeout(resolve, 1000)); // Fake delay
-        
+
         // Update the mock deposit
         setUserDeposits(prev => ({
           ...prev,
@@ -247,7 +247,7 @@ const LendingTable = ({ assets = [], isLoading = false }) => {
             value: 0
           }
         }));
-        
+
         alert(`Successfully withdrawn ${amount} ${asset.symbol}`);
       } else {
         // In production, use the actual withdraw function
@@ -265,7 +265,7 @@ const LendingTable = ({ assets = [], isLoading = false }) => {
       setIsPending(false);
     }
   };
-  
+
   // Loading state
   if (isLoading || !isClient) {
     return (
@@ -278,7 +278,7 @@ const LendingTable = ({ assets = [], isLoading = false }) => {
       </div>
     );
   }
-  
+
   return (
     <div className="bg-gradient-to-r p-[1px] from-red-magic to-blue-magic rounded-xl overflow-hidden">
       <div className="bg-[#1A0015] rounded-xl p-4 overflow-x-auto">
@@ -293,16 +293,16 @@ const LendingTable = ({ assets = [], isLoading = false }) => {
           </thead>
           <tbody>
             {assets.map((asset, index) => (
-              <AssetRow 
-                key={index} 
-                asset={asset} 
-                onDeposit={handleDeposit} 
+              <AssetRow
+                key={index}
+                asset={asset}
+                onDeposit={handleDeposit}
                 onWithdraw={handleWithdraw}
                 depositData={userDeposits[asset.symbol]}
                 isConnected={isConnected}
               />
             ))}
-            
+
             {/* Empty state */}
             {assets.length === 0 && (
               <tr>
@@ -313,7 +313,7 @@ const LendingTable = ({ assets = [], isLoading = false }) => {
             )}
           </tbody>
         </table>
-        
+
         {/* Connection prompt */}
         {!isConnected && !isDev && (
           <div className="mt-4 p-4 bg-[#250020] rounded-lg">
@@ -328,7 +328,7 @@ const LendingTable = ({ assets = [], isLoading = false }) => {
             </div>
           </div>
         )}
-        
+
         {isDev && (
           <div className="mt-4 p-4 bg-[#250020] rounded-lg border border-yellow-600/30">
             <p className="text-center text-white/70">

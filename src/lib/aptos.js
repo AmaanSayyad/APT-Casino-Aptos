@@ -1,10 +1,10 @@
 import { Aptos, AptosConfig, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
-import { 
-  WalletCore, 
-  NetworkInfo, 
-  WalletInfo, 
+import {
+  WalletCore,
+  NetworkInfo,
+  WalletInfo,
   WalletReadyState,
-  WalletAdapter 
+  WalletAdapter
 } from "@aptos-labs/wallet-adapter-core";
 
 // Aptos network configurations
@@ -16,7 +16,7 @@ export const APTOS_NETWORKS = {
     faucetUrl: null
   },
   testnet: {
-    name: "Aptos Testnet", 
+    name: "Aptos Testnet",
     chainId: 2,
     url: "https://fullnode.testnet.aptoslabs.com",
     faucetUrl: "https://faucet.testnet.aptoslabs.com"
@@ -24,13 +24,13 @@ export const APTOS_NETWORKS = {
   devnet: {
     name: "Aptos Devnet",
     chainId: 0,
-    url: "https://fullnode.devnet.aptoslabs.com", 
+    url: "https://fullnode.devnet.aptoslabs.com",
     faucetUrl: "https://faucet.devnet.aptoslabs.com"
   }
 };
 
 // Default network (can be changed via environment variable)
-export const DEFAULT_NETWORK = process.env.NEXT_PUBLIC_APTOS_NETWORK || 'testnet';
+export const DEFAULT_NETWORK = process.env.NEXT_PUBLIC_APTOS_NETWORK || 'mainnet';
 
 // Aptos client instance (ts-sdk v3+)
 const NETWORK_ENUM_MAP = {
@@ -50,8 +50,8 @@ console.log("Aptos client configured for network:", DEFAULT_NETWORK);
 console.log("Network enum:", NETWORK_ENUM_MAP[DEFAULT_NETWORK]);
 
 // Module addresses for our casino contracts
-export const CASINO_MODULE_ADDRESS = process.env.NEXT_PUBLIC_CASINO_MODULE_ADDRESS || 
-  "0x421055ba162a1f697532e79ea9a6852422d311f0993eb880c75110218d7f52c0";
+export const CASINO_MODULE_ADDRESS = process.env.NEXT_PUBLIC_CASINO_MODULE_ADDRESS ||
+  "0xcad18bc68f2f890a21fdfbec9e6c7c72985a223e95a19d667881ea9fceba3f4b";
 
 // Treasury receive address (can be same as module or a separate EOA)
 export const TREASURY_ADDRESS = process.env.NEXT_PUBLIC_TREASURY_ADDRESS || CASINO_MODULE_ADDRESS;
@@ -62,7 +62,7 @@ export const APT_TOKEN_MODULE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin
 // Casino game module names
 export const CASINO_MODULES = {
   roulette: `${CASINO_MODULE_ADDRESS}::roulette`,
-  mines: `${CASINO_MODULE_ADDRESS}::mines`, 
+  mines: `${CASINO_MODULE_ADDRESS}::mines`,
   wheel: `${CASINO_MODULE_ADDRESS}::wheel`
 };
 
@@ -71,7 +71,7 @@ export async function getAccountBalance(address) {
   try {
     const resources = await aptosClient.getAccountResources({ accountAddress: address });
     const aptCoinResource = resources.find(r => r.type === APT_TOKEN_MODULE);
-    
+
     if (aptCoinResource) {
       return aptCoinResource.data.coin.value;
     }
@@ -134,7 +134,7 @@ export async function waitForTransaction(hash) {
 // Create a transaction payload for an entry function (new SDK format)
 export const createEntryFunctionPayload = (moduleAddress, moduleName, functionName, typeArgs, args) => {
   console.log("createEntryFunctionPayload called with:", { moduleAddress, moduleName, functionName, typeArgs, args });
-  
+
   const payload = {
     data: {
       function: `${moduleAddress}::${moduleName}::${functionName}`,
@@ -142,7 +142,7 @@ export const createEntryFunctionPayload = (moduleAddress, moduleName, functionNa
       functionArguments: args || [],
     },
   };
-  
+
   console.log("createEntryFunctionPayload returning:", payload);
   return payload;
 };
@@ -163,7 +163,7 @@ export async function getRandomNumber(seed) {
   const timestamp = Date.now();
   const randomBytes = new Uint8Array(32);
   crypto.getRandomValues(randomBytes);
-  
+
   return {
     randomNumber: Array.from(randomBytes).reduce((acc, byte) => acc + byte, 0),
     timestamp
@@ -219,7 +219,7 @@ export const CasinoGames = {
         [amount]
       );
     },
-    
+
     getGameState: async () => {
       try {
         const resource = await aptosClient.getAccountResource({
@@ -245,11 +245,11 @@ export const CasinoGames = {
         [amountOctas, CASINO_MODULE_ADDRESS]
       );
     },
-    
+
     userPlay: (amountOctas, pick) => {
       return createEntryFunctionPayload(
         CASINO_MODULE_ADDRESS,
-        "mines", 
+        "mines",
         "user_play",
         [],
         [amountOctas, pick]

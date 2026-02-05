@@ -97,7 +97,7 @@ APT-Casino addresses these problems by offering:
 
 All though started as a idea but now we are thinking to carry forward as a business model and expand further.
 
-- **Mainnet Launch:** Deploying on the aptos mainnet for real-world use.
+- **Mainnet:** Project is configured for Aptos Mainnet.
 
 - **User Testing:** Conducting extensive user testing to refine the platform.
 
@@ -175,14 +175,14 @@ aptos move compile
 # Run tests
 aptos move test
 
-# Deploy to testnet
-node scripts/deploy.js testnet
+# Deploy to mainnet
+node scripts/deploy.js mainnet
 ```
 
 ### Environment Variables
 ```env
 # Aptos Configuration
-NEXT_PUBLIC_APTOS_NETWORK=testnet|mainnet
+NEXT_PUBLIC_APTOS_NETWORK=mainnet
 NEXT_PUBLIC_CASINO_MODULE_ADDRESS=your_module_address
 
 TREASURY_PRIVATE_KEY=

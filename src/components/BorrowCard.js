@@ -15,10 +15,10 @@ const BorrowCard = ({ asset }) => {
   const [currentAPY, setCurrentAPY] = useState(asset.defaultAPY || 7.5);
   const isDev = process.env.NODE_ENV === 'development';
   const notification = useNotification();
-  
+
   useEffect(() => {
     setIsClient(true);
-    
+
     // In development mode, create mock data
     if (isDev) {
       setIsConnected(true);
@@ -26,7 +26,7 @@ const BorrowCard = ({ asset }) => {
         symbol: asset.symbol,
         formatted: (Math.random() * 5 + 0.5).toFixed(4)
       });
-      
+
       // Create mock borrow data if appropriate
       const shouldHaveBorrow = Math.random() > 0.5;
       if (shouldHaveBorrow) {
@@ -37,7 +37,7 @@ const BorrowCard = ({ asset }) => {
           }
         });
       }
-      
+
       // Create mock deposit data
       setUserDeposits({
         [asset.symbol]: {
@@ -45,34 +45,34 @@ const BorrowCard = ({ asset }) => {
           value: (Math.random() * 1000 + 100).toFixed(2)
         }
       });
-      
+
       // Set random APY
       setCurrentAPY((Math.random() * 5 + 5).toFixed(2));
-      
+
       // Set up dev wallet toggle event listener
       const handleDevWalletToggle = () => {
         setIsConnected(prev => !prev);
       };
-      
+
       window.addEventListener('dev-wallet-toggle', handleDevWalletToggle);
       return () => {
         window.removeEventListener('dev-wallet-toggle', handleDevWalletToggle);
       };
     }
-    
+
     // Load Aptos wallet data
     const loadWalletData = async () => {
       try {
-        // Set connected state for Aptos testnet
+        // Set connected state for Aptos mainnet
         setIsConnected(true);
-        
-        // Set mock balance for Aptos testnet
+
+        // Set mock balance for Aptos mainnet
         setNativeBalance({
           symbol: asset.symbol,
           formatted: (Math.random() * 5 + 0.5).toFixed(4)
         });
-        
-        // Set mock lending market data for Aptos testnet
+
+        // Set mock lending market data for Aptos mainnet
         setUserBorrows({});
         setUserDeposits({
           [asset.symbol]: {
@@ -86,65 +86,65 @@ const BorrowCard = ({ asset }) => {
         // Don't show error notification for missing hooks
       }
     };
-    
+
     loadWalletData();
   }, [asset.symbol, asset.defaultAPY, isDev, notification]);
-  
+
   // Get any existing borrow for this asset
   const existingBorrow = userBorrows[asset.symbol];
-  
+
   // Calculate max borrowable amount based on collateral
   const maxBorrowable = calculateMaxBorrowable();
-  
+
   function calculateMaxBorrowable() {
     if (isDev) {
-      return asset.symbol === 'APTC' 
-        ? 0.5123 
+      return asset.symbol === 'APTC'
+        ? 0.5123
         : Math.random() * 2 + 0.05;
     }
-    
+
     // Calculate based on deposits with an LTV ratio
     const userDeposit = userDeposits[asset.symbol];
     if (!userDeposit) return 0.01;
-    
+
     // Example: 75% LTV ratio
     return parseFloat(userDeposit.amount) * 0.75;
   }
-  
+
   const handleConnectWallet = async () => {
     if (isDev) {
       // In development mode, just simulate connection
       setIsConnected(true);
       return;
     }
-    
+
     // Show Aptos wallet connection message
     alert("Please connect your Aptos wallet to continue");
   };
-  
+
   const handleBorrow = async () => {
     if (!isConnected) {
       handleConnectWallet();
       return;
     }
-    
+
     if (!borrowAmount || parseFloat(borrowAmount) <= 0) {
       notification.warning('Please enter a valid amount');
       return;
     }
-    
+
     if (parseFloat(borrowAmount) > maxBorrowable) {
       notification.warning(`You can only borrow up to ${maxBorrowable.toFixed(6)} ${asset.symbol}`);
       return;
     }
-    
+
     try {
       setIsPending(true);
-      
+
       // In development mode, simulate borrowing
       if (isDev) {
         await new Promise(resolve => setTimeout(resolve, 1000)); // Fake delay
-        
+
         // Update the mock borrow
         setUserBorrows(prev => ({
           ...prev,
@@ -153,13 +153,13 @@ const BorrowCard = ({ asset }) => {
             interest: currentAPY
           }
         }));
-        
+
         notification.success(`Successfully borrowed ${borrowAmount} ${asset.symbol}`);
         setBorrowAmount('');
       } else {
-        // For Aptos testnet, simulate borrowing
+        // For Aptos mainnet, simulate borrowing
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         setUserBorrows(prev => ({
           ...prev,
           [asset.symbol]: {
@@ -167,7 +167,7 @@ const BorrowCard = ({ asset }) => {
             interest: currentAPY
           }
         }));
-        
+
         notification.success(`Successfully borrowed ${borrowAmount} ${asset.symbol}`);
         setBorrowAmount('');
       }
@@ -175,54 +175,54 @@ const BorrowCard = ({ asset }) => {
       setIsPending(false);
     }
   };
-  
+
   const handleRepay = async () => {
     if (!isConnected) {
       handleConnectWallet();
       return;
     }
-    
+
     if (!existingBorrow) {
       notification.warning('You have no debt to repay');
       return;
     }
-    
+
     try {
       setIsPending(true);
-      
+
       // In development mode, simulate repaying
       if (isDev) {
         await new Promise(resolve => setTimeout(resolve, 1000)); // Fake delay
-        
+
         // Clear the mock borrow
         setUserBorrows(prev => {
-          const newBorrows = {...prev};
+          const newBorrows = { ...prev };
           delete newBorrows[asset.symbol];
           return newBorrows;
         });
-        
+
         notification.success(`Successfully repaid ${existingBorrow.amount} ${asset.symbol}`);
       } else {
-        // For Aptos testnet, simulate repaying
+        // For Aptos mainnet, simulate repaying
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         setUserBorrows(prev => {
-          const newBorrows = {...prev};
+          const newBorrows = { ...prev };
           delete newBorrows[asset.symbol];
           return newBorrows;
         });
-        
+
         notification.success(`Successfully repaid ${existingBorrow.amount} ${asset.symbol}`);
       }
     } finally {
       setIsPending(false);
     }
   };
-  
+
   const handleMaxClick = () => {
     setBorrowAmount(maxBorrowable.toFixed(6));
   };
-  
+
   if (!isClient) {
     return (
       <div className="bg-gradient-to-r p-[1px] from-red-magic to-blue-magic rounded-xl">
@@ -239,13 +239,13 @@ const BorrowCard = ({ asset }) => {
       </div>
     );
   }
-  
+
   return (
     <div className="bg-gradient-to-r p-[1px] from-red-magic to-blue-magic rounded-xl">
       <div className="bg-[#1A0015] rounded-xl p-6 h-full">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center">
-            <div 
+            <div
               className="mr-2 w-6 h-6 rounded-full flex items-center justify-center text-white"
               style={{ backgroundColor: asset.iconColor }}
             >
@@ -253,19 +253,19 @@ const BorrowCard = ({ asset }) => {
             </div>
             <h3 className="text-lg font-medium">{asset.name}</h3>
           </div>
-          
+
           {isDev && (
             <span className="text-xs text-yellow-400 bg-yellow-900/30 px-2 py-1 rounded">
               Dev Mode
             </span>
           )}
         </div>
-        
+
         <div className="mb-6">
           <p className="text-sm text-white/70 mb-1">Current Balance</p>
           <div className="flex items-baseline">
             <span className="text-3xl font-bold">
-              {isConnected 
+              {isConnected
                 ? asset.symbol === nativeBalance?.symbol
                   ? nativeBalance?.formatted || '0'
                   : '0'
@@ -275,7 +275,7 @@ const BorrowCard = ({ asset }) => {
             <span className="ml-2 text-sm text-white/50">{asset.symbol}</span>
           </div>
         </div>
-        
+
         {/* Borrowed amount (if any) */}
         {existingBorrow && (
           <div className="mb-6 p-3 bg-[#250020] rounded-lg">
@@ -289,7 +289,7 @@ const BorrowCard = ({ asset }) => {
             </p>
           </div>
         )}
-        
+
         <div className="mb-6">
           <label className="block text-sm text-white/70 mb-2">Amount to Borrow</label>
           <div className="p-[1px] rounded-md bg-gradient-to-r from-red-magic to-blue-magic">
@@ -302,7 +302,7 @@ const BorrowCard = ({ asset }) => {
                 className="bg-transparent flex-1 p-3 focus:outline-none text-white"
                 disabled={!isConnected || isPending}
               />
-              <button 
+              <button
                 className="bg-[#1A0015] px-4 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleMaxClick}
                 disabled={!isConnected || isPending || maxBorrowable <= 0}
@@ -319,7 +319,7 @@ const BorrowCard = ({ asset }) => {
               Current APR: {parseFloat(currentAPY).toFixed(2)}%
             </p>
           </div>
-          
+
           {!isConnected && !isDev && (
             <p className="text-xs text-white/70 mt-2">
               Connect your wallet to borrow {asset.symbol}
@@ -331,9 +331,9 @@ const BorrowCard = ({ asset }) => {
             </p>
           )}
         </div>
-        
+
         <div className="flex gap-3 justify-end mt-6">
-          <GradientBorderButton 
+          <GradientBorderButton
             onClick={handleRepay}
             disabled={!isConnected || !existingBorrow || isPending}
           >
@@ -347,7 +347,7 @@ const BorrowCard = ({ asset }) => {
             )}
           </GradientBorderButton>
           {isConnected ? (
-            <GradientBgButton 
+            <GradientBgButton
               onClick={handleBorrow}
               disabled={!borrowAmount || parseFloat(borrowAmount) <= 0 || isPending}
             >
@@ -366,31 +366,31 @@ const BorrowCard = ({ asset }) => {
             </GradientBgButton>
           )}
         </div>
-        
+
         {/* Debug notification buttons - only visible in development mode */}
         {isDev && (
           <div className="mt-6 pt-4 border-t border-white/10">
             <p className="text-xs text-white/50 mb-2">Test Notifications:</p>
             <div className="flex flex-wrap gap-2">
-              <button 
+              <button
                 onClick={() => notification.success("Success message test")}
                 className="px-2 py-1 text-xs bg-green-600/30 text-green-400 rounded"
               >
                 Test Success
               </button>
-              <button 
+              <button
                 onClick={() => notification.error("Error message test")}
                 className="px-2 py-1 text-xs bg-red-600/30 text-red-400 rounded"
               >
                 Test Error
               </button>
-              <button 
+              <button
                 onClick={() => notification.warning("Warning message test")}
                 className="px-2 py-1 text-xs bg-yellow-600/30 text-yellow-400 rounded"
               >
                 Test Warning
               </button>
-              <button 
+              <button
                 onClick={() => notification.info("Info message test")}
                 className="px-2 py-1 text-xs bg-blue-600/30 text-blue-400 rounded"
               >

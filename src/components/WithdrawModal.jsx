@@ -9,22 +9,22 @@ import { aptosClient } from '@/lib/aptos';
 import { toast } from 'react-toastify';
 
 // Treasury wallet address - in production this should be stored securely
-const TREASURY_WALLET = "0x421055ba162a1f697532e79ea9a6852422d311f0993eb880c75110218d7f52c0";
+const TREASURY_WALLET = "0xcad18bc68f2f890a21fdfbec9e6c7c72985a223e95a19d667881ea9fceba3f4b";
 
 const WithdrawModal = ({ isOpen, onClose }) => {
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [step, setStep] = useState('input'); // 'input', 'confirm', 'processing', 'success', 'error'
   const [error, setError] = useState('');
-  
+
   const { userBalance } = useSelector((state) => state.balance);
   const { account, connected, signAndSubmitTransaction } = useWallet();
   const dispatch = useDispatch();
-  
+
   // Display balance in APT format
   const balanceInApt = parseFloat(userBalance || '0') / 100000000;
   const maxWithdraw = Math.max(0, balanceInApt - 0.01); // Reserve 0.01 APT for gas fees
-  
+
   useEffect(() => {
     if (!isOpen) {
       setStep('input');
@@ -33,7 +33,7 @@ const WithdrawModal = ({ isOpen, onClose }) => {
       setIsProcessing(false);
     }
   }, [isOpen]);
-  
+
   const handleAmountChange = (e) => {
     const value = e.target.value;
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
@@ -41,46 +41,46 @@ const WithdrawModal = ({ isOpen, onClose }) => {
       setError('');
     }
   };
-  
+
   const validateWithdraw = () => {
     const amount = parseFloat(withdrawAmount);
-    
+
     if (!amount || amount <= 0) {
       setError('Please enter a valid amount');
       return false;
     }
-    
+
     if (amount > maxWithdraw) {
       setError(`Insufficient balance. Max withdraw: ${maxWithdraw.toFixed(4)} APT`);
       return false;
     }
-    
+
     if (amount < 0.001) {
       setError('Minimum withdraw amount is 0.001 APT');
       return false;
     }
-    
+
     return true;
   };
-  
+
   const handleWithdraw = async () => {
     if (!validateWithdraw()) return;
-    
+
     if (!connected || !account) {
       setError('Please connect your wallet');
       return;
     }
-    
+
     setStep('confirm');
   };
-  
+
   const confirmWithdraw = async () => {
     setStep('processing');
     setIsProcessing(true);
-    
+
     try {
       const amount = parseFloat(withdrawAmount);
-      
+
       // Call backend API to process withdrawal from treasury
       const response = await fetch('/api/withdraw', {
         method: 'POST',
@@ -92,31 +92,31 @@ const WithdrawModal = ({ isOpen, onClose }) => {
           amount: amount
         })
       });
-      
+
       const result = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(result.error || 'Withdrawal failed');
       }
-      
+
       // Deduct from user's balance
       const amountOctas = Math.floor(amount * 100000000);
       const currentBalanceOctas = parseInt(userBalance || '0');
       const newBalanceOctas = currentBalanceOctas - amountOctas;
       dispatch(setBalance(newBalanceOctas.toString()));
-      
+
       setStep('success');
       const txHash = result.transactionHash || result.userTxHash || result.txnHash || 'N/A';
-      const txDisplay = typeof txHash === 'string' && txHash.length > 8 
-        ? `${txHash.slice(0, 8)}...` 
+      const txDisplay = typeof txHash === 'string' && txHash.length > 8
+        ? `${txHash.slice(0, 8)}...`
         : txHash;
       toast.success(`Successfully withdrew ${amount} APT! TX: ${txDisplay}`);
-      
+
       // Close modal after 3 seconds
       setTimeout(() => {
         onClose();
       }, 3000);
-      
+
     } catch (error) {
       console.error('Withdraw error:', error);
       setError(`Withdraw failed: ${error.message}`);
@@ -125,7 +125,7 @@ const WithdrawModal = ({ isOpen, onClose }) => {
       setIsProcessing(false);
     }
   };
-  
+
   const renderStep = () => {
     switch (step) {
       case 'input':
@@ -138,7 +138,7 @@ const WithdrawModal = ({ isOpen, onClose }) => {
               <h3 className="text-2xl font-bold text-white mb-2">Withdraw APT</h3>
               <p className="text-gray-400">Transfer your winnings to your wallet</p>
             </div>
-            
+
             <div className="bg-gray-800/50 rounded-lg p-4">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-400">Available Balance:</span>
@@ -149,7 +149,7 @@ const WithdrawModal = ({ isOpen, onClose }) => {
                 <span className="text-green-400 font-bold">{maxWithdraw.toFixed(4)} APT</span>
               </div>
             </div>
-            
+
             <div>
               <label className="block text-gray-300 mb-2">Withdraw Amount (APT)</label>
               <div className="relative">
@@ -174,7 +174,7 @@ const WithdrawModal = ({ isOpen, onClose }) => {
                 </p>
               )}
             </div>
-            
+
             <div className="flex gap-3">
               <button
                 onClick={onClose}
@@ -193,7 +193,7 @@ const WithdrawModal = ({ isOpen, onClose }) => {
             </div>
           </div>
         );
-        
+
       case 'confirm':
         return (
           <div className="space-y-6">
@@ -204,7 +204,7 @@ const WithdrawModal = ({ isOpen, onClose }) => {
               <h3 className="text-2xl font-bold text-white mb-2">Confirm Withdrawal</h3>
               <p className="text-gray-400">Please review your withdrawal details</p>
             </div>
-            
+
             <div className="bg-gray-800/50 rounded-lg p-4 space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-400">Withdraw Amount:</span>
@@ -224,7 +224,7 @@ const WithdrawModal = ({ isOpen, onClose }) => {
                 <span className="text-green-400 font-bold">{(parseFloat(withdrawAmount) - 0.001).toFixed(4)} APT</span>
               </div>
             </div>
-            
+
             <div className="flex gap-3">
               <button
                 onClick={() => setStep('input')}
@@ -241,7 +241,7 @@ const WithdrawModal = ({ isOpen, onClose }) => {
             </div>
           </div>
         );
-        
+
       case 'processing':
         return (
           <div className="space-y-6 text-center">
@@ -250,7 +250,7 @@ const WithdrawModal = ({ isOpen, onClose }) => {
             </div>
             <h3 className="text-2xl font-bold text-white mb-2">Processing Withdrawal</h3>
             <p className="text-gray-400">Please wait while we process your withdrawal...</p>
-            
+
             <div className="bg-gray-800/50 rounded-lg p-4">
               <div className="flex justify-between mb-2">
                 <span className="text-gray-400">Amount:</span>
@@ -263,7 +263,7 @@ const WithdrawModal = ({ isOpen, onClose }) => {
             </div>
           </div>
         );
-        
+
       case 'success':
         return (
           <div className="space-y-6 text-center">
@@ -272,7 +272,7 @@ const WithdrawModal = ({ isOpen, onClose }) => {
             </div>
             <h3 className="text-2xl font-bold text-white mb-2">Withdrawal Successful!</h3>
             <p className="text-gray-400">Your APT has been sent to your wallet</p>
-            
+
             <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
               <div className="flex justify-between mb-2">
                 <span className="text-gray-400">Amount Sent:</span>
@@ -283,11 +283,11 @@ const WithdrawModal = ({ isOpen, onClose }) => {
                 <span className="text-white font-mono text-sm">{account?.address?.slice(0, 6)}...{account?.address?.slice(-4)}</span>
               </div>
             </div>
-            
+
             <p className="text-sm text-gray-500">This modal will close automatically in a few seconds...</p>
           </div>
         );
-        
+
       case 'error':
         return (
           <div className="space-y-6 text-center">
@@ -296,11 +296,11 @@ const WithdrawModal = ({ isOpen, onClose }) => {
             </div>
             <h3 className="text-2xl font-bold text-white mb-2">Withdrawal Failed</h3>
             <p className="text-gray-400">There was an error processing your withdrawal</p>
-            
+
             <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
               <p className="text-red-400">{error}</p>
             </div>
-            
+
             <div className="flex gap-3">
               <button
                 onClick={() => setStep('input')}
@@ -317,12 +317,12 @@ const WithdrawModal = ({ isOpen, onClose }) => {
             </div>
           </div>
         );
-        
+
       default:
         return null;
     }
   };
-  
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -348,7 +348,7 @@ const WithdrawModal = ({ isOpen, onClose }) => {
                 <FaTimes />
               </button>
             )}
-            
+
             {renderStep()}
           </motion.div>
         </motion.div>

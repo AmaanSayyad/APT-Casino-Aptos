@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Aptos, AptosConfig, Network, Ed25519PrivateKey, Account } from '@aptos-labs/ts-sdk';
 
-const config = new AptosConfig({ network: Network.TESTNET });
+const config = new AptosConfig({ network: Network.MAINNET });
 const aptos = new Aptos(config);
 
 // Game types mapping
@@ -113,13 +113,13 @@ export async function POST(request: NextRequest) {
     console.log('├── Timestamp:', new Date(Number(executedTransaction.timestamp) / 1000).toISOString());
     console.log('├── 🎲 Randomness generated on-chain by Aptos');
     console.log('├── 🔐 Transaction signed by Treasury wallet');
-    console.log('└── 🌐 Explorer URL:', `https://explorer.aptoslabs.com/txn/${committedTxn.hash}?network=testnet`);
+    console.log('└── 🌐 Explorer URL:', `https://explorer.aptoslabs.com/txn/${committedTxn.hash}?network=mainnet`);
 
     return NextResponse.json({
       success: true,
       transactionHash: committedTxn.hash,
       gameLogged: true,
-      explorerUrl: `https://explorer.aptoslabs.com/txn/${committedTxn.hash}?network=testnet`,
+      explorerUrl: `https://explorer.aptoslabs.com/txn/${committedTxn.hash}?network=mainnet`,
     });
 
   } catch (error: any) {

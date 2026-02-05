@@ -17,7 +17,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$SCRIPT_DIR"
 
 # Default values
-NETWORK="testnet"
+NETWORK="mainnet"
 DEPLOY_FRONTEND=true
 DEPLOY_CONTRACTS=true
 VERBOSE=false

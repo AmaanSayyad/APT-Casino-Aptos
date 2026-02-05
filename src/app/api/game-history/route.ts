@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Aptos, AptosConfig, Network } from '@aptos-labs/ts-sdk';
 
-const config = new AptosConfig({ network: Network.TESTNET });
+const config = new AptosConfig({ network: Network.MAINNET });
 const aptos = new Aptos(config);
 
 export async function GET(request: NextRequest) {

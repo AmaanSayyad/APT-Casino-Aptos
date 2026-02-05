@@ -12,42 +12,42 @@ const WheelHistory = ({ gameHistory = [] }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
 
-   // Open Aptos explorer link for transaction hash
-   const openAptosExplorer = (hash) => {
+  // Open Aptos explorer link for transaction hash
+  const openAptosExplorer = (hash) => {
     if (hash && hash !== 'unknown') {
-      const explorerUrl = `https://explorer.aptoslabs.com/txn/${hash}?network=testnet`;
+      const explorerUrl = `https://explorer.aptoslabs.com/txn/${hash}?network=mainnet`;
       window.open(explorerUrl, '_blank');
     }
   };
-  
+
   // Use real game history data from props instead of sample data
   const historyData = gameHistory.length > 0 ? gameHistory : [];
-  
+
   // Filter history based on active tab and search query
   const filteredHistory = historyData.filter(item => {
-    const matchesSearch = 
+    const matchesSearch =
       (item.game && item.game.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (item.multiplier && item.multiplier.toLowerCase().includes(searchQuery.toLowerCase()));
-      
+
     if (activeTab === "all") return matchesSearch;
     if (activeTab === "high-risk") return item.multiplier && parseFloat(item.multiplier) >= 3.0 && matchesSearch;
     if (activeTab === "big-wins") return item.payout && item.payout >= 100 && matchesSearch;
     return matchesSearch;
   });
-  
+
   // Stats calculation from real data
   const totalBets = historyData.length;
   const totalVolume = historyData.reduce((sum, item) => sum + (parseFloat(item.betAmount) || 0), 0);
   const biggestWin = historyData.length > 0 ? Math.max(...historyData.map(item => parseFloat(item.payout) || 0)) : 0;
-  
+
   // Pagination
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
-  
+
   const paginatedHistory = filteredHistory.slice((page - 1) * entriesShown, page * entriesShown);
   const totalPages = Math.ceil(filteredHistory.length / entriesShown);
-  
+
   return (
     <Paper
       elevation={5}
@@ -73,11 +73,11 @@ const WheelHistory = ({ gameHistory = [] }) => {
         }
       }}
     >
-      <Typography 
-        variant="h5" 
-        fontWeight="bold" 
+      <Typography
+        variant="h5"
+        fontWeight="bold"
         gutterBottom
-        sx={{ 
+        sx={{
           borderBottom: '1px solid rgba(104, 29, 219, 0.3)',
           pb: 1.5,
           display: 'flex',
@@ -92,34 +92,34 @@ const WheelHistory = ({ gameHistory = [] }) => {
           Game History
         </span>
       </Typography>
-      
-      <Typography 
-        variant="body2" 
+
+      <Typography
+        variant="body2"
         color="rgba(255,255,255,0.7)"
         sx={{ mb: 3 }}
       >
         Recent game results and statistics
       </Typography>
 
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: { xs: 'column', md: 'row' }, 
+      <Box sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', md: 'row' },
         justifyContent: 'space-between',
         alignItems: { xs: 'stretch', md: 'center' },
         mb: 3,
         gap: 2
       }}>
-        <Box sx={{ 
-          display: 'grid', 
-          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, 
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
           gap: 2,
           width: '100%'
         }}>
-          <Box 
-            sx={{ 
-              p: 2, 
-              borderRadius: 2, 
-              backgroundColor: 'rgba(104, 29, 219, 0.1)', 
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              backgroundColor: 'rgba(104, 29, 219, 0.1)',
               border: '1px solid rgba(104, 29, 219, 0.2)',
               display: 'flex',
               flexDirection: 'column'
@@ -135,12 +135,12 @@ const WheelHistory = ({ gameHistory = [] }) => {
               <FaChartLine color="rgba(104, 29, 219, 0.8)" />
             </Box>
           </Box>
-          
-          <Box 
-            sx={{ 
-              p: 2, 
-              borderRadius: 2, 
-              backgroundColor: 'rgba(255, 165, 0, 0.1)', 
+
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              backgroundColor: 'rgba(255, 165, 0, 0.1)',
               border: '1px solid rgba(255, 165, 0, 0.2)',
               display: 'flex',
               flexDirection: 'column'
@@ -150,7 +150,7 @@ const WheelHistory = ({ gameHistory = [] }) => {
               Total Volume
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography variant="h6" fontWeight="bold" color="white" sx={{ 
+              <Typography variant="h6" fontWeight="bold" color="white" sx={{
                 maxWidth: '80%',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -158,25 +158,25 @@ const WheelHistory = ({ gameHistory = [] }) => {
               }}>
                 {totalVolume.toFixed(5)} ETH
               </Typography>
-              <Box 
-                sx={{ 
-                  width: 24, 
-                  height: 24, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center' 
+              <Box
+                sx={{
+                  width: 24,
+                  height: 24,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
                 <Image src={coin} width={20} height={20} alt="coin" />
               </Box>
             </Box>
           </Box>
-          
-          <Box 
-            sx={{ 
-              p: 2, 
-              borderRadius: 2, 
-              backgroundColor: 'rgba(20, 216, 84, 0.1)', 
+
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              backgroundColor: 'rgba(20, 216, 84, 0.1)',
               border: '1px solid rgba(20, 216, 84, 0.2)',
               display: 'flex',
               flexDirection: 'column'
@@ -186,7 +186,7 @@ const WheelHistory = ({ gameHistory = [] }) => {
               Biggest Win
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography variant="h6" fontWeight="bold" color="white" sx={{ 
+              <Typography variant="h6" fontWeight="bold" color="white" sx={{
                 maxWidth: '80%',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -199,25 +199,25 @@ const WheelHistory = ({ gameHistory = [] }) => {
           </Box>
         </Box>
       </Box>
-      
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: { xs: 'column', md: 'row' }, 
+
+      <Box sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', md: 'row' },
         justifyContent: 'space-between',
         alignItems: { xs: 'stretch', md: 'center' },
         mb: 3,
         gap: 2
       }}>
-        <Box sx={{ 
-          display: 'flex', 
+        <Box sx={{
+          display: 'flex',
           gap: 1,
           borderBottom: '1px solid rgba(104, 29, 219, 0.2)',
           width: { xs: '100%', md: 'auto' }
         }}>
-          <Button 
+          <Button
             variant={activeTab === 'all' ? 'contained' : 'text'}
             onClick={() => setActiveTab('all')}
-            sx={{ 
+            sx={{
               borderRadius: '4px 4px 0 0',
               backgroundColor: activeTab === 'all' ? 'rgba(104, 29, 219, 0.3)' : 'transparent',
               color: activeTab === 'all' ? 'white' : 'rgba(255,255,255,0.7)',
@@ -231,10 +231,10 @@ const WheelHistory = ({ gameHistory = [] }) => {
           >
             All Spins
           </Button>
-          <Button 
+          <Button
             variant={activeTab === 'high-risk' ? 'contained' : 'text'}
             onClick={() => setActiveTab('high-risk')}
-            sx={{ 
+            sx={{
               borderRadius: '4px 4px 0 0',
               backgroundColor: activeTab === 'high-risk' ? 'rgba(104, 29, 219, 0.3)' : 'transparent',
               color: activeTab === 'high-risk' ? 'white' : 'rgba(255,255,255,0.7)',
@@ -248,10 +248,10 @@ const WheelHistory = ({ gameHistory = [] }) => {
           >
             High Risk
           </Button>
-          <Button 
+          <Button
             variant={activeTab === 'big-wins' ? 'contained' : 'text'}
             onClick={() => setActiveTab('big-wins')}
-            sx={{ 
+            sx={{
               borderRadius: '4px 4px 0 0',
               backgroundColor: activeTab === 'big-wins' ? 'rgba(104, 29, 219, 0.3)' : 'transparent',
               color: activeTab === 'big-wins' ? 'white' : 'rgba(255,255,255,0.7)',
@@ -266,16 +266,16 @@ const WheelHistory = ({ gameHistory = [] }) => {
             Big Wins
           </Button>
         </Box>
-        
-        <Box sx={{ 
-          display: 'flex', 
+
+        <Box sx={{
+          display: 'flex',
           gap: 2,
           flexWrap: { xs: 'wrap', md: 'nowrap' }
         }}>
           <TextField
-                    placeholder="Search history..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search history..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             size="small"
             InputProps={{
               startAdornment: (
@@ -302,7 +302,7 @@ const WheelHistory = ({ gameHistory = [] }) => {
                 },
               }
             }}
-            sx={{ 
+            sx={{
               minWidth: { xs: '100%', md: '200px' },
               '& .MuiInputBase-input::placeholder': {
                 color: 'rgba(255,255,255,0.5)',
@@ -310,16 +310,16 @@ const WheelHistory = ({ gameHistory = [] }) => {
               },
             }}
           />
-          
-          <FormControl 
-            size="small" 
-            sx={{ 
+
+          <FormControl
+            size="small"
+            sx={{
               minWidth: { xs: '100%', md: '120px' },
             }}
           >
             <Select
-                  value={entriesShown}
-                  onChange={(e) => setEntriesShown(Number(e.target.value))}
+              value={entriesShown}
+              onChange={(e) => setEntriesShown(Number(e.target.value))}
               sx={{
                 color: 'white',
                 backgroundColor: 'rgba(0,0,0,0.2)',
@@ -342,11 +342,11 @@ const WheelHistory = ({ gameHistory = [] }) => {
               <MenuItem value={50}>Show 50</MenuItem>
             </Select>
           </FormControl>
-          
-          <Button 
+
+          <Button
             variant="contained"
             startIcon={<FaDownload />}
-            sx={{ 
+            sx={{
               backgroundColor: 'rgba(104, 29, 219, 0.3)',
               '&:hover': {
                 backgroundColor: 'rgba(104, 29, 219, 0.5)',
@@ -354,14 +354,14 @@ const WheelHistory = ({ gameHistory = [] }) => {
               minWidth: { xs: '100%', md: 'auto' },
             }}
           >
-                  Export
+            Export
           </Button>
         </Box>
       </Box>
-      
-      <TableContainer 
-        sx={{ 
-          backgroundColor: 'rgba(0,0,0,0.2)', 
+
+      <TableContainer
+        sx={{
+          backgroundColor: 'rgba(0,0,0,0.2)',
           borderRadius: 2,
           border: '1px solid rgba(104, 29, 219, 0.2)',
           mb: 3,
@@ -387,8 +387,8 @@ const WheelHistory = ({ gameHistory = [] }) => {
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell 
-                sx={{ 
+              <TableCell
+                sx={{
                   backgroundColor: 'rgba(0,0,0,0.4)',
                   color: 'white',
                   fontWeight: 'bold',
@@ -397,8 +397,8 @@ const WheelHistory = ({ gameHistory = [] }) => {
               >
                 Game
               </TableCell>
-              <TableCell 
-                sx={{ 
+              <TableCell
+                sx={{
                   backgroundColor: 'rgba(0,0,0,0.4)',
                   color: 'white',
                   fontWeight: 'bold',
@@ -407,8 +407,8 @@ const WheelHistory = ({ gameHistory = [] }) => {
               >
                 Time
               </TableCell>
-              <TableCell 
-                sx={{ 
+              <TableCell
+                sx={{
                   backgroundColor: 'rgba(0,0,0,0.4)',
                   color: 'white',
                   fontWeight: 'bold',
@@ -417,8 +417,8 @@ const WheelHistory = ({ gameHistory = [] }) => {
               >
                 Bet Amount
               </TableCell>
-              <TableCell 
-                sx={{ 
+              <TableCell
+                sx={{
                   backgroundColor: 'rgba(0,0,0,0.4)',
                   color: 'white',
                   fontWeight: 'bold',
@@ -427,8 +427,8 @@ const WheelHistory = ({ gameHistory = [] }) => {
               >
                 Multiplier
               </TableCell>
-              <TableCell 
-                sx={{ 
+              <TableCell
+                sx={{
                   backgroundColor: 'rgba(0,0,0,0.4)',
                   color: 'white',
                   fontWeight: 'bold',
@@ -437,8 +437,8 @@ const WheelHistory = ({ gameHistory = [] }) => {
               >
                 Payout
               </TableCell>
-              <TableCell 
-                sx={{ 
+              <TableCell
+                sx={{
                   backgroundColor: 'rgba(0,0,0,0.4)',
                   color: 'white',
                   fontWeight: 'bold',
@@ -447,8 +447,8 @@ const WheelHistory = ({ gameHistory = [] }) => {
               >
                 Result
               </TableCell>
-              <TableCell 
-                sx={{ 
+              <TableCell
+                sx={{
                   backgroundColor: 'rgba(0,0,0,0.4)',
                   color: 'white',
                   fontWeight: 'bold',
@@ -461,64 +461,64 @@ const WheelHistory = ({ gameHistory = [] }) => {
           </TableHead>
           <TableBody>
             {paginatedHistory.map((item, index) => (
-              <Fade 
-                in={true} 
+              <Fade
+                in={true}
                 key={item.id}
-                style={{ 
+                style={{
                   transformOrigin: '0 0 0',
                   transitionDelay: `${index * 50}ms`
                 }}
               >
-                <TableRow 
-                  sx={{ 
-                    '&:nth-of-type(odd)': { 
-                      backgroundColor: 'rgba(0,0,0,0.1)' 
+                <TableRow
+                  sx={{
+                    '&:nth-of-type(odd)': {
+                      backgroundColor: 'rgba(0,0,0,0.1)'
                     },
-                    '&:hover': { 
-                      backgroundColor: 'rgba(104, 29, 219, 0.1)' 
+                    '&:hover': {
+                      backgroundColor: 'rgba(104, 29, 219, 0.1)'
                     },
                     transition: 'background-color 0.2s'
                   }}
                 >
-                  <TableCell 
-                    sx={{ 
+                  <TableCell
+                    sx={{
                       color: 'white',
                       borderBottom: '1px solid rgba(104, 29, 219, 0.1)'
                     }}
                   >
                     {item.game || 'Wheel'}
                   </TableCell>
-                  <TableCell 
-                    sx={{ 
+                  <TableCell
+                    sx={{
                       color: 'rgba(255,255,255,0.7)',
                       borderBottom: '1px solid rgba(104, 29, 219, 0.1)'
                     }}
                   >
                     {item.time}
                   </TableCell>
-                  <TableCell 
-                    sx={{ 
+                  <TableCell
+                    sx={{
                       borderBottom: '1px solid rgba(104, 29, 219, 0.1)'
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <Typography 
-                        variant="body2" 
+                      <Typography
+                        variant="body2"
                         color="rgba(255,255,255,0.7)"
-                        sx={{ 
+                        sx={{
                           maxWidth: '80px',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap'
                         }}
                       >
-                            {item.betAmount} ETH
+                        {item.betAmount} ETH
                       </Typography>
                       <Image src={coin} width={16} height={16} alt="coin" />
                     </Box>
                   </TableCell>
-                  <TableCell 
-                    sx={{ 
+                  <TableCell
+                    sx={{
                       color: 'white',
                       fontWeight: 'medium',
                       borderBottom: '1px solid rgba(104, 29, 219, 0.1)'
@@ -526,47 +526,47 @@ const WheelHistory = ({ gameHistory = [] }) => {
                   >
                     {item.multiplier}
                   </TableCell>
-                  <TableCell 
-                    sx={{ 
+                  <TableCell
+                    sx={{
                       borderBottom: '1px solid rgba(104, 29, 219, 0.1)'
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <Typography 
-                        variant="body2" 
+                      <Typography
+                        variant="body2"
                         color="#FFA500"
                         fontWeight="medium"
-                        sx={{ 
+                        sx={{
                           maxWidth: '80px',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap'
                         }}
                       >
-                            {item.payout} ETH
+                        {item.payout} ETH
                       </Typography>
                       <Image src={coin} width={16} height={16} alt="coin" />
                     </Box>
                   </TableCell>
-                  <TableCell 
-                    sx={{ 
+                  <TableCell
+                    sx={{
                       color: item.payout > 0 ? '#14D854' : '#d82633',
                       fontWeight: 'medium',
                       borderBottom: '1px solid rgba(104, 29, 219, 0.1)'
                     }}
                   >
-                        {item.payout > 0 ? `+${item.payout}` : '0'}
+                    {item.payout > 0 ? `+${item.payout}` : '0'}
                   </TableCell>
-                  <TableCell 
-                    sx={{ 
+                  <TableCell
+                    sx={{
                       borderBottom: '1px solid rgba(104, 29, 219, 0.1)'
                     }}
                   >
                     {item.txHash ? (
-                      <Box 
-                        sx={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
                           gap: 0.5,
                           cursor: 'pointer',
                           '&:hover': {
@@ -575,10 +575,10 @@ const WheelHistory = ({ gameHistory = [] }) => {
                         }}
                         onClick={() => openAptosExplorer(item.txHash)}
                       >
-                        <Typography 
-                          variant="body2" 
+                        <Typography
+                          variant="body2"
                           color="#4A9EFF"
-                          sx={{ 
+                          sx={{
                             fontFamily: 'monospace',
                             fontSize: '0.75rem',
                             maxWidth: '80px',
@@ -592,8 +592,8 @@ const WheelHistory = ({ gameHistory = [] }) => {
                         <FaExternalLinkAlt size={10} color="#4A9EFF" />
                       </Box>
                     ) : (
-                      <Typography 
-                        variant="body2" 
+                      <Typography
+                        variant="body2"
                         color="rgba(255,255,255,0.5)"
                         sx={{ fontSize: '0.75rem' }}
                       >
@@ -607,12 +607,12 @@ const WheelHistory = ({ gameHistory = [] }) => {
           </TableBody>
         </Table>
       </TableContainer>
-            
-            {filteredHistory.length === 0 && (
-        <Box 
-          sx={{ 
-            py: 4, 
-            textAlign: 'center', 
+
+      {filteredHistory.length === 0 && (
+        <Box
+          sx={{
+            py: 4,
+            textAlign: 'center',
             backgroundColor: 'rgba(0,0,0,0.2)',
             borderRadius: 2,
             border: '1px solid rgba(104, 29, 219, 0.2)',
@@ -624,18 +624,18 @@ const WheelHistory = ({ gameHistory = [] }) => {
           </Typography>
         </Box>
       )}
-      
-      <Box sx={{ 
-        display: 'flex', 
+
+      <Box sx={{
+        display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: 2
       }}>
         <Typography variant="body2" color="rgba(255,255,255,0.5)">
-                Showing {Math.min(entriesShown, filteredHistory.length)} of {filteredHistory.length} results
+          Showing {Math.min(entriesShown, filteredHistory.length)} of {filteredHistory.length} results
         </Typography>
-        
+
         {totalPages > 1 && (
           <Pagination
             count={totalPages}

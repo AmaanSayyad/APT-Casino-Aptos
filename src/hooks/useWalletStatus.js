@@ -14,11 +14,11 @@ const WalletStatusContext = createContext(null);
 export function WalletStatusProvider({ children }) {
   const isDev = process.env.NODE_ENV === 'development';
 
-  const { 
-    connected, 
-    account, 
-    network, 
-    connect, 
+  const {
+    connected,
+    account,
+    network,
+    connect,
     disconnect
   } = useWallet();
 
@@ -38,7 +38,7 @@ export function WalletStatusProvider({ children }) {
       setDevWallet({
         isConnected: true,
         address: '0x1234...dev',
-        chain: { id: 'aptos_testnet', name: 'Aptos Testnet' },
+        chain: { id: 'mainnet', name: 'Aptos Mainnet' },
       });
     }
 
@@ -52,15 +52,15 @@ export function WalletStatusProvider({ children }) {
 
         return newState
           ? {
-              isConnected: true,
-              address: '0x1234...dev',
-              chain: { id: 'aptos_testnet', name: 'Aptos Testnet' },
-            }
+            isConnected: true,
+            address: '0x1234...dev',
+            chain: { id: 'mainnet', name: 'Aptos Mainnet' },
+          }
           : {
-              isConnected: false,
-              address: null,
-              chain: null,
-            };
+            isConnected: false,
+            address: null,
+            chain: null,
+          };
       });
     };
 
@@ -76,7 +76,7 @@ export function WalletStatusProvider({ children }) {
       setDevWallet({
         isConnected: true,
         address: '0x1234...dev',
-        chain: { id: 'aptos_testnet', name: 'Aptos Testnet' },
+        chain: { id: 'mainnet', name: 'Aptos Mainnet' },
       });
       return;
     }
@@ -113,13 +113,13 @@ export function WalletStatusProvider({ children }) {
   const currentStatus = isDev
     ? devWallet
     : {
-        isConnected: connected,
-        address: account?.address,
-        chain: { 
-          id: 'aptos_testnet', 
-          name: 'Aptos Testnet' 
-        },
-      };
+      isConnected: connected,
+      address: account?.address,
+      chain: {
+        id: 'mainnet',
+        name: 'Aptos Mainnet'
+      },
+    };
 
   useEffect(() => {
     console.log('🔌 Aptos Wallet connection changed:');

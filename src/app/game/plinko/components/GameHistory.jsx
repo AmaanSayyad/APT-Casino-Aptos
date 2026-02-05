@@ -77,7 +77,7 @@ export default function GameHistory({ history }) {
                 <td className="py-3 px-4">
                   {game.txHash ? (
                     <a
-                      href={`https://explorer.aptoslabs.com/txn/${game.txHash}?network=testnet`}
+                      href={`https://explorer.aptoslabs.com/txn/${game.txHash}?network=mainnet`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-400 hover:text-blue-300 text-xs underline"

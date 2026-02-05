@@ -18,7 +18,7 @@ export const Table = () => {
         <tr>
           <td>
             <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
-            MATIC (Mumbia testnet)
+            APT (Aptos Mainnet)
           </td>
           <td>$0.93</td>
           <td>0.22</td>

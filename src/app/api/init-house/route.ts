@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Aptos, AptosConfig, Network, Ed25519PrivateKey, Account } from '@aptos-labs/ts-sdk';
 
-const config = new AptosConfig({ network: Network.TESTNET });
+const config = new AptosConfig({ network: Network.MAINNET });
 const aptos = new Aptos(config);
 
 export async function POST(_request: NextRequest) {
@@ -22,7 +22,7 @@ export async function POST(_request: NextRequest) {
         resourceType: `${moduleAddr}::user_balance::House`,
       });
       return NextResponse.json({ message: 'House already initialized', admin: (res as any).data?.admin });
-    } catch {}
+    } catch { }
 
     const tx = await aptos.transaction.build.simple({
       sender: admin.accountAddress,

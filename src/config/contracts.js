@@ -26,7 +26,7 @@ export const APTOS_EXPLORER_URLS = {
 };
 
 // Default network (can be changed via environment variable)
-export const DEFAULT_NETWORK = APTOS_NETWORKS.TESTNET;
+export const DEFAULT_NETWORK = APTOS_NETWORKS.MAINNET;
 
 // Casino Module Configuration
 export const CASINO_MODULE_CONFIG = {
