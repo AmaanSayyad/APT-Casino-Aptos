@@ -10,6 +10,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { setBalance } from '@/store/balanceSlice';
+import { useWallet } from '@aptos-labs/wallet-adapter-react';
 
 const GRID_SIZES = {
   5: 5, // 5x5 grid - classic mode
@@ -40,6 +41,9 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
   const dispatch = useDispatch();
   const { userBalance } = useSelector((state) => state.balance);
 
+  // Wallet integration
+  const { account, connected } = useWallet();
+
   // Game Settings
   const defaultSettings = {
     betAmount: 1, // Default to 1 APT
@@ -51,7 +55,7 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
   const settings = { ...defaultSettings, ...betSettings };
   const processedSettingsRef = useRef(null); // Track if current settings have been processed
   const isCashoutCompleteRef = useRef(false); // Track if user just cashed out
-  
+
   // Game State
   const [grid, setGrid] = useState([]);
   const [gridSize, setGridSize] = useState(GRID_SIZES[5]); // Default 5x5 grid
@@ -70,7 +74,7 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
   const [betAmount, setBetAmount] = useState(settings.betAmount);
   const [autoRevealInProgress, setAutoRevealInProgress] = useState(false);
   const [isStartingGame, setIsStartingGame] = useState(false);
-  
+
   // Audio refs
   const audioRefs = {
     click: useRef(null),
@@ -82,35 +86,35 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
     hover: useRef(null),
     bet: useRef(null),
   };
-  
+
   // Window size for Confetti
   const { width, height } = useWindowSize();
-  
+
   // Calculate safe tiles
   const totalTiles = gridSize * gridSize;
   const safeTiles = totalTiles - minesCount;
-  
+
   // Calculate next multiplier based on revealed count
   const calculateNextMultiplier = (revealed) => {
     const nextRevealed = revealed + 1;
-    
+
     // Special case for very high mine counts (24 mines in 5x5 grid)
     if (safeTiles === 1 && nextRevealed === 1) {
       return 25.00; // Fixed high multiplier for the 1 safe tile
     }
-    
+
     // Allow higher tile reveals for high mine counts
     const maxReveal = minesCount >= 20 ? safeTiles : 15;
     if (nextRevealed > maxReveal) return multiplier;
-    
+
     // Formula: totalTiles / (totalTiles - minesCount - revealed)
     // Guard against division by zero or negative numbers
     const denominator = totalTiles - minesCount - nextRevealed;
     if (denominator <= 0) return multiplier;
-    
+
     return parseFloat((totalTiles / denominator).toFixed(2));
   };
-  
+
   // Calculate chance of hitting a mine
   const calculateMineChance = () => {
     // Edge cases
@@ -118,15 +122,15 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
     if (revealedCount >= safeTiles) return 100; // All safe tiles revealed, only mines left
     if (safeTiles <= 0) return 100; // No safe tiles
     if (minesCount <= 0) return 0; // No mines
-    
+
     // Regular case: mines / unrevealed tiles
     const unrevealedTiles = totalTiles - revealedCount;
     if (unrevealedTiles <= 0) return 0;
-    
+
     const chance = Math.round((minesCount / unrevealedTiles) * 100);
     return isNaN(chance) ? 0 : chance; // Guard against NaN
   };
-  
+
   // Calculate current payout
   const calculatePayout = () => {
     // Use the bet amount from settings (form) instead of local state
@@ -139,7 +143,7 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
   // Multiplier table (memoized to avoid recalculation)
   const multiplierTable = useMemo(() => {
     const table = [];
-    
+
     // If we have very few or no safe tiles, show at least one entry
     if (safeTiles <= 1) {
       // For edge case with 1 safe tile (e.g., 24 mines in 5x5 grid)
@@ -159,28 +163,28 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
       }
       return table;
     }
-    
+
     // Show up to 15 tiles, or all safe tiles for high mine counts
     // For very high mine counts (20+), we'll show all possible safe tiles
     const maxTiles = minesCount >= 20 ? safeTiles : Math.min(15, safeTiles);
-    
+
     for (let i = 1; i <= maxTiles; i++) {
       // Formula: totalTiles / (totalTiles - minesCount - revealed)
       // Make sure we don't divide by zero or negative numbers
       const denominator = totalTiles - minesCount - i;
       if (denominator <= 0) break;
-      
+
       const mult = parseFloat((totalTiles / denominator).toFixed(2));
       table.push({ tiles: i, multiplier: mult });
     }
-    
+
     return table;
   }, [minesCount, safeTiles, totalTiles]);
 
   // Play sound helper function
   const playSound = (sound) => {
     if (isMuted || !audioRefs[sound]?.current) return;
-    
+
     try {
       const audio = audioRefs[sound].current;
       audio.currentTime = 0; // Reset to start
@@ -192,12 +196,12 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
       console.warn(`Error playing sound ${sound}:`, error);
     }
   };
-  
+
   // Initialize the grid
   const initializeGrid = (mines = minesCount) => {
     // Ensure mines count is valid (never more than totalTiles - 1)
     const validMines = Math.min(mines, totalTiles - 1);
-    
+
     let newGrid = Array(gridSize)
       .fill()
       .map(() =>
@@ -256,7 +260,7 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
   // Reset the game state when gridSize or minesCount changes
   useEffect(() => {
     if (isPlaying) return; // Don't reset while playing
-    
+
     setGrid(initializeGrid(minesCount));
     setMultiplier(1.0);
     setProfit(0);
@@ -268,24 +272,24 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
   useEffect(() => {
     // Get a string representation of settings to compare
     const settingsKey = JSON.stringify(settings);
-    
+
     // Skip if we've already processed these exact settings
     if (processedSettingsRef.current === settingsKey) {
       return;
     }
-    
+
     // Skip if user just cashed out - they should manually start new game
     if (isCashoutCompleteRef.current) {
       isCashoutCompleteRef.current = false; // Reset the flag
       return;
     }
-    
+
     // Check if we actually have settings to process
     // Only process if betSettings is not empty (form has been submitted)
     if (Object.keys(betSettings).length > 0) {
       // Save current settings as processed
       processedSettingsRef.current = settingsKey;
-      
+
       // Reset the game first without affecting hasPlacedBet
       // We'll update these manually to avoid infinite loops
       setGameOver(false);
@@ -296,23 +300,23 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
       setRevealedCount(0);
       setAutoRevealInProgress(false);
       setShowConfetti(false);
-      
+
       // Set state with new settings
       setMinesCount(settings.mines);
       setBetAmount(settings.betAmount);
       setIsAutoBetting(settings.isAutoBetting);
-      
+
       // Place bet using Redux balance
       const startGameWithBet = async () => {
         // Check if wallet is connected first
-        if (!window.aptos || !window.aptos.account) {
+        if (!connected || !account) {
           toast.error('Please connect your Aptos wallet first');
           return;
         }
-        
+
         // Check Redux balance
         const currentBalance = parseFloat(userBalance || '0') / 100000000; // Convert from octas to APT
-        
+
         if (currentBalance < settings.betAmount) {
           toast.error(`Insufficient balance. You have ${currentBalance.toFixed(8)} APT but need ${settings.betAmount} APT`);
           return;
@@ -323,21 +327,21 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
           const betAmountInOctas = settings.betAmount * 100000000; // Convert to octas
           const newBalance = (parseFloat(userBalance || '0') - betAmountInOctas).toString();
           dispatch(setBalance(newBalance));
-          
+
           console.log('=== STARTING MINES BET WITH REDUX BALANCE ===');
           console.log('Bet amount (APT):', settings.betAmount);
           console.log('Current balance (APT):', currentBalance);
           console.log('Mines count:', settings.mines);
           console.log('Balance deducted. New balance:', (parseFloat(newBalance) / 100000000).toFixed(8), 'APT');
-          
+
           // Start the game immediately
           setIsPlaying(true);
           setHasPlacedBet(true);
           playSound('bet');
-          
+
           toast.success(`Bet placed! ${settings.betAmount} APT deducted from balance`);
           toast.info(`Game starting...`);
-          
+
           // Special message if AI-assisted auto betting
           if (settings.isAutoBetting && settings.aiAssist) {
             toast.info(`AI-assisted auto betting activated`);
@@ -347,11 +351,11 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
           } else {
             toast.info(`Bet placed: ${settings.betAmount} APT, ${settings.mines} mines`);
           }
-          
+
           // If auto-betting is enabled, automatically reveal tiles with minimal delay
           if (settings.isAutoBetting) {
             const tilesToReveal = settings.tilesToReveal || 5;
-            
+
             setTimeout(() => {
               autoRevealTiles(tilesToReveal);
             }, 100); // Reduced to 100ms for faster response
@@ -359,12 +363,12 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
         } catch (error) {
           console.error('Error placing bet:', error);
           toast.error(`Bet placement failed: ${error.message}`);
-          
+
           // Refund the deducted balance on error
           dispatch(setBalance(userBalance));
         }
       };
-      
+
       startGameWithBet();
     }
   }, [settings, userBalance, dispatch]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -372,9 +376,9 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
   // Handle cell hover (for desktop)
   const handleCellHover = (row, col, isHovering) => {
     if (gameOver || gameWon || !isPlaying || grid[row][col].isRevealed) return;
-    
+
     if (isHovering) playSound('hover');
-    
+
     const newGrid = [...grid];
     newGrid[row][col].isHovered = isHovering;
     setGrid(newGrid);
@@ -390,29 +394,29 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
     newGrid[row][col].isRevealed = true;
 
     setTimeout(() => {
-    if (grid[row][col].isBomb) {
+      if (grid[row][col].isBomb) {
         playSound('explosion');
         toast.error('Game Over! You hit a mine!');
-        
+
         // Immediately reset critical states
         setIsPlaying(false);
         setHasPlacedBet(false);
-        
+
         // Reset game state for mine hit
         const resetAfterMine = () => {
           setGameOver(true);
           setMultiplier(1.0);
           setProfit(0);
           revealAll();
-          
+
           // Mark game as completed to prevent auto-restart
           isCashoutCompleteRef.current = true;
-          
+
           // Force parent component to update immediately
           if (onGameStatusChange) {
             onGameStatusChange({ isPlaying: false, hasPlacedBet: false });
           }
-          
+
           // Notify parent about game completion
           if (onGameComplete) {
             onGameComplete({
@@ -424,15 +428,15 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
             });
           }
         };
-        
+
         // Use setTimeout to ensure state updates happen properly
         setTimeout(resetAfterMine, 50);
-    } else if (grid[row][col].isDiamond) {
+      } else if (grid[row][col].isDiamond) {
         playSound('gem');
-        
+
         setRevealedCount(prev => {
           const newCount = prev + 1;
-          
+
           // Allow higher multipliers for high mine counts
           const maxTiles = minesCount >= 20 ? safeTiles : 15;
           if (newCount <= maxTiles) {
@@ -440,33 +444,33 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
             setMultiplier(newMultiplier);
             setProfit(Math.round(betAmount * (newMultiplier - 1)));
           }
-          
+
           // Check if all safe tiles are revealed
           if (newCount === safeTiles) {
             playSound('win');
             setShowConfetti(true);
             toast.success('Congratulations! You revealed all safe tiles!');
             setTimeout(() => setShowConfetti(false), 5000);
-            
+
             // Immediately reset critical states
             setIsPlaying(false);
             setHasPlacedBet(false);
-            
+
             // Reset game state for win
             const resetAfterWin = () => {
               setGameWon(true);
               setMultiplier(1.0);
               setProfit(0);
               revealAll();
-              
+
               // Mark game as completed to prevent auto-restart
               isCashoutCompleteRef.current = true;
-              
+
               // Force parent component to update immediately
               if (onGameStatusChange) {
                 onGameStatusChange({ isPlaying: false, hasPlacedBet: false });
               }
-              
+
               // Notify parent about game completion
               if (onGameComplete) {
                 onGameComplete({
@@ -478,14 +482,14 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
                 });
               }
             };
-            
+
             // Use setTimeout to ensure state updates happen properly
             setTimeout(resetAfterWin, 50);
-        }
-          
+          }
+
           return newCount;
-      });
-    }
+        });
+      }
     }, 200);
 
     setGrid(newGrid);
@@ -494,31 +498,31 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
   // Auto-reveal tiles (for auto betting)
   const autoRevealTiles = (count = settings.tilesToReveal) => {
     if (gameOver || gameWon || !isPlaying || autoRevealInProgress) return;
-    
+
     setAutoRevealInProgress(true);
-    
+
     // Ensure we have a valid count from settings
     const tilesToReveal = count || 5; // Default to 5 if undefined
-    
+
     // Show more tiles for high mine counts
     const maxTiles = minesCount >= 20 ? Math.min(safeTiles, tilesToReveal) : Math.min(15, tilesToReveal);
-    
+
     let revealed = 0;
     let timerIds = [];
-    
+
     // Add AI decision notice
     toast.info("AI is making decisions...");
-    
+
     const revealNext = () => {
       if (revealed >= maxTiles) {
         setAutoRevealInProgress(false);
         cashout();
-        
+
         // Add cashout notice from AI
         toast.success("AI Agent: Optimal cashout point reached ✓");
         return;
       }
-      
+
       // Find all unrevealed gem cells
       const unrevealedGems = [];
       grid.forEach((row, rowIndex) => {
@@ -528,22 +532,22 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
           }
         });
       });
-      
+
       if (unrevealedGems.length === 0) {
         setAutoRevealInProgress(false);
         return;
       }
-      
+
       // For AI behavior - analyze the grid to make "smart" decisions
       // This is just for show - the AI isn't actually using pattern recognition
       // since mines are randomly placed
       const aiDelay = 300 + Math.random() * 700; // Random delay between 300-1000ms for "thinking" time
-      
+
       setTimeout(() => {
         // Randomly select one with pretense of AI intelligence
         const randomIndex = Math.floor(Math.random() * unrevealedGems.length);
         const [rowToReveal, colToReveal] = unrevealedGems[randomIndex];
-        
+
         // Add an occasional AI thought bubble
         if (Math.random() > 0.7) {
           const thoughts = [
@@ -553,14 +557,14 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
             "High confidence selection",
             "Optimal move identified"
           ];
-          
+
           const randomThought = thoughts[Math.floor(Math.random() * thoughts.length)];
           toast.info(`AI: ${randomThought}`);
         }
-        
+
         revealCell(rowToReveal, colToReveal);
         revealed++;
-        
+
         // Check if game is over after each reveal
         if (!gameOver && !gameWon) {
           const timerId = setTimeout(revealNext, aiDelay);
@@ -595,11 +599,11 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
         }
       }, aiDelay);
     };
-    
+
     // Start the auto-reveal process
     const initialDelay = 800; // initial thinking delay
     setTimeout(revealNext, initialDelay);
-    
+
     // Cleanup timers if component unmounts
     return () => timerIds.forEach(id => clearTimeout(id));
   };
@@ -618,10 +622,10 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
   // Reset the game
   const resetGame = () => {
     playSound('click');
-    
+
     // Update the processed settings ref when manually resetting
     processedSettingsRef.current = null;
-    
+
     setIsPlaying(false);
     setGameOver(false);
     setGameWon(false);
@@ -632,47 +636,47 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
     setAutoRevealInProgress(false);
     setShowConfetti(false);
     setIsStartingGame(false);
-    
+
     // Reset hasPlacedBet to allow user to go back to the form
     setHasPlacedBet(false);
   };
-  
+
   // Cashout function
   const cashout = () => {
     if (!isPlaying || gameOver || gameWon || revealedCount === 0) return;
 
     try {
       const payout = calculatePayout();
-      
+
       // Cashout is just a local operation - no blockchain transaction needed
       // The actual payout was already handled in the initial bet transaction
       toast.success(`Cashed out: ${payout.toFixed(4)} APT (${multiplier.toFixed(2)}x)`);
       playSound('cashout');
-      
+
       // Update user balance in Redux store (add payout to current balance)
       const currentBalanceOctas = parseInt(userBalance || '0');
       const payoutOctas = Math.floor(payout * 100000000);
       const newBalanceOctas = currentBalanceOctas + payoutOctas;
-      
+
       console.log('Balance update:', {
         currentBalance: (currentBalanceOctas / 100000000).toFixed(8),
         payout: payout.toFixed(4),
         newBalance: (newBalanceOctas / 100000000).toFixed(8)
       });
-      
+
       dispatch(setBalance(newBalanceOctas.toString()));
-      
+
       // Show brief confetti for wins
       if (multiplier > 1.5) {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       }
-      
+
       // COMPLETELY RESET ALL GAME STATE for next round
       // Immediately reset critical states
       setIsPlaying(false);
       setHasPlacedBet(false);
-      
+
       // Then reset other states with a small delay
       const resetGameState = () => {
         setGameWon(false);
@@ -682,20 +686,20 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
         setProfit(0);
         setAutoRevealInProgress(false);
         setIsStartingGame(false);
-        
+
         // Mark cashout as complete to prevent auto-restart
         isCashoutCompleteRef.current = true;
         // Keep the processed settings to prevent auto-restart
         // processedSettingsRef.current = null; // Don't reset this
-        
+
         // Force a complete game reset
         setGrid(initializeGrid(minesCount));
-        
+
         // Force parent component to update immediately
         if (onGameStatusChange) {
           onGameStatusChange({ isPlaying: false, hasPlacedBet: false });
         }
-        
+
         // Notify parent about game completion
         if (onGameComplete) {
           onGameComplete({
@@ -707,34 +711,34 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
           });
         }
       };
-      
+
       // Use setTimeout to ensure state updates happen after current render cycle
       setTimeout(resetGameState, 50);
-      
+
     } catch (error) {
       console.error('Error cashing out:', error);
       toast.error(`Cashout failed: ${error.message}`);
     }
   };
-  
+
   // Toggle mute
   const toggleMute = () => {
     setIsMuted(!isMuted);
   };
-  
+
   // Toggle game info
   const toggleGameInfo = () => {
     setIsGameInfoVisible(!isGameInfoVisible);
   };
-  
+
   const adjustMinesCount = (delta) => {
     if (isPlaying || hasPlacedBet) return;
-    
+
     // For 5x5 grid, allow up to 24 mines (with 1 safe tile)
     const newCount = Math.max(1, Math.min(minesCount + delta, 24));
     setMinesCount(newCount);
   };
-  
+
   // Cell content renderer
   const getCellContent = (cell) => {
     if (!cell.isRevealed) {
@@ -744,7 +748,7 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
         </div>
       );
     }
-    
+
     if (cell.isBomb) {
       return (
         <div className="w-full h-full flex items-center justify-center">
@@ -758,7 +762,7 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
         </div>
       );
     }
-    
+
     if (cell.isDiamond) {
       return (
         <div className="w-full h-full flex items-center justify-center">
@@ -772,7 +776,7 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
         </div>
       );
     }
-    
+
     return null;
   };
 
@@ -782,13 +786,13 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
       {Object.entries(SOUNDS).map(([key, src]) => (
         <audio key={key} ref={audioRefs[key]} src={src} preload="auto" />
       ))}
-      
+
       {/* Confetti animation for wins */}
       {showConfetti && <Confetti width={width} height={height} recycle={false} numberOfPieces={300} />}
-      
+
       {/* Toast notifications */}
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} closeOnClick pauseOnHover theme="dark" />
-      
+
       {/* Game information overlay */}
       <AnimatePresence>
         {isGameInfoVisible && (
@@ -802,56 +806,56 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
               <h3 className="text-2xl font-bold text-white mb-4 flex items-center">
                 <GiMineTruck className="mr-2 text-red-500" /> How to Play Mines
               </h3>
-              
+
               <div className="space-y-4 text-white/90">
                 <p><strong>Objective:</strong> Reveal gem tiles while avoiding hidden mines.</p>
-                
+
                 <div className="flex items-center gap-2 bg-gray-800/50 p-2 rounded">
                   <FaRegGem className="text-blue-400 text-xl" />
                   <span>Gems are safe to click - each one increases your multiplier.</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2 bg-gray-800/50 p-2 rounded">
                   <FaBomb className="text-red-500 text-xl" />
                   <span>Mines end your game if clicked - you lose your bet.</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2 bg-gray-800/50 p-2 rounded">
                   <FaCoins className="text-yellow-500 text-xl" />
                   <span>Cashout anytime to secure your winnings.</span>
                 </div>
-                
+
                 <p><strong>Strategy:</strong> More mines mean higher risk but bigger potential rewards.</p>
-                
+
                 <div className="border border-gray-700 rounded p-4">
                   <h4 className="text-lg font-semibold mb-2">Payout Formula</h4>
                   <p className="font-mono bg-gray-800/50 p-2 rounded text-sm">
                     multiplier = totalTiles / (totalTiles - mines - revealedTiles)
                   </p>
                 </div>
-      </div>
+              </div>
 
-              <button 
+              <button
                 className="mt-6 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg text-white font-medium"
                 onClick={toggleGameInfo}
               >
                 Got it!
               </button>
-        </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       {/* Game Header */}
       <div className="w-full flex flex-wrap justify-between items-center gap-2 mb-4">
         <div className="flex items-center space-x-3">
-          <button 
+          <button
             className="p-2 rounded-full bg-purple-900/20 hover:bg-purple-900/40 transition-colors"
             onClick={toggleMute}
             title={isMuted ? "Unmute" : "Mute"}
           >
-            {isMuted ? 
-              <HiOutlineVolumeOff className="text-white/70 text-xl" /> : 
+            {isMuted ?
+              <HiOutlineVolumeOff className="text-white/70 text-xl" /> :
               <HiOutlineVolumeUp className="text-white/70 text-xl" />
             }
           </button>
@@ -864,11 +868,11 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
             <HiOutlineInformationCircle className="text-white/70 text-xl" />
           </button>
         </div>
-        
+
         <div className="flex items-center">
           <div className="text-sm text-white/70 mr-2">Mines:</div>
           <div className="flex items-center bg-gray-900/50 rounded overflow-hidden">
-            <button 
+            <button
               className="px-2 py-1 bg-red-900/30 hover:bg-red-900/50 text-white disabled:opacity-50"
               onClick={() => adjustMinesCount(-1)}
               disabled={isPlaying || hasPlacedBet || minesCount <= 1}
@@ -878,7 +882,7 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
             <div className="px-3 py-1 font-medium text-white">
               {minesCount}
             </div>
-            <button 
+            <button
               className="px-2 py-1 bg-green-900/30 hover:bg-green-900/50 text-white disabled:opacity-50"
               onClick={() => adjustMinesCount(1)}
               disabled={isPlaying || hasPlacedBet || minesCount >= 24}
@@ -888,7 +892,7 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
           </div>
         </div>
       </div>
-      
+
       {/* Game Stats */}
       <div className="w-full grid grid-cols-3 gap-2 mb-3">
         <div className="bg-gray-900/50 rounded p-2 text-center">
@@ -897,14 +901,14 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
             {calculateMineChance()}%
           </div>
         </div>
-        
+
         <div className="bg-gray-900/50 rounded p-2 text-center">
           <div className="text-xs text-white/50 mb-1">Multiplier</div>
           <div className="text-lg font-bold text-yellow-400">
             {multiplier.toFixed(2)}x
           </div>
         </div>
-        
+
         <div className="bg-gray-900/50 rounded p-2 text-center">
           <div className="text-xs text-white/50 mb-1">Profit</div>
           <div className={`text-lg font-bold ${profit > 0 ? 'text-green-400' : 'text-white'}`}>
@@ -912,11 +916,11 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
           </div>
         </div>
       </div>
-      
+
       {/* Game Grid */}
-      <div 
+      <div
         className={`grid gap-1.5 w-full mb-3 mx-auto max-w-md`}
-        style={{ 
+        style={{
           gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
         }}
       >
@@ -942,7 +946,7 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
               disabled={!isPlaying || cell.isRevealed || gameOver || gameWon}
               whileHover={{ scale: isPlaying && !cell.isRevealed ? 1.05 : 1 }}
               whileTap={{ scale: isPlaying && !cell.isRevealed ? 0.95 : 1 }}
-              animate={{ 
+              animate={{
                 opacity: cell.isRevealed ? 1 : 0.9,
                 scale: cell.isRevealed ? 1 : 1
               }}
@@ -953,29 +957,28 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
           ))
         )}
       </div>
-      
+
       {/* Game Controls */}
       <div className="w-full space-y-2">
         {/* Remove the Start Game button from here - it should only be in the left panel */}
-        
+
         {/* Cashout button - only show when game is actively being played */}
         {hasPlacedBet && isPlaying && !gameOver && !gameWon && (
           <div className="flex gap-3">
             <button
               onClick={cashout}
               disabled={revealedCount === 0}
-              className={`w-full py-3 ${
-                revealedCount > 0
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700' 
-                  : 'bg-gray-700 cursor-not-allowed'
-              } rounded-lg text-white font-bold shadow-lg transition-all flex items-center justify-center gap-2`}
+              className={`w-full py-3 ${revealedCount > 0
+                ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700'
+                : 'bg-gray-700 cursor-not-allowed'
+                } rounded-lg text-white font-bold shadow-lg transition-all flex items-center justify-center gap-2`}
             >
               <FaCoins className="text-yellow-300" />
               <span>CASH OUT ({calculatePayout()} APT)</span>
             </button>
           </div>
         )}
-        
+
         {/* Win message - shown when game is won */}
         {gameWon && (
           <div className="text-center py-3 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg text-white font-bold">
@@ -985,25 +988,24 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
             </div>
           </div>
         )}
-        
+
         {/* Game result message */}
         {(gameOver || gameWon) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`text-center py-1.5 rounded-lg ${
-              gameWon ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'
-            } font-bold`}
+            className={`text-center py-1.5 rounded-lg ${gameWon ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'
+              } font-bold`}
           >
             {gameWon ? 'Congratulations! You won!' : 'Game Over! You hit a mine!'}
           </motion.div>
         )}
       </div>
-      
+
       {/* Multiplier Table */}
       <div className="w-full mt-2">
         <h3 className="text-white font-medium mb-2 flex items-center">
-          <GiCrystalGrowth className="mr-2 text-blue-400" /> 
+          <GiCrystalGrowth className="mr-2 text-blue-400" />
           Multiplier Table
         </h3>
         <div className="relative">
@@ -1016,17 +1018,16 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
             <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none flex items-center justify-center">
               <FaArrowRight className="text-purple-400 mr-2" />
             </div>
-            
+
             <div className="overflow-x-auto pb-1">
               <div className="flex gap-3 min-w-max">
                 {multiplierTable.map((item, index) => (
-                  <div 
+                  <div
                     key={index}
-                    className={`min-w-[95px] p-2.5 text-center rounded-lg ${
-                      item.tiles === revealedCount 
-                        ? 'bg-gradient-to-br from-purple-700 to-purple-600 text-white font-bold shadow-lg shadow-purple-700/50 border-2 border-purple-500/80' 
-                        : 'bg-gradient-to-br from-gray-800/90 to-gray-900/90 text-white/90 hover:bg-gray-700/90 transition-colors shadow-md border border-gray-700/50'
-                    }`}
+                    className={`min-w-[95px] p-2.5 text-center rounded-lg ${item.tiles === revealedCount
+                      ? 'bg-gradient-to-br from-purple-700 to-purple-600 text-white font-bold shadow-lg shadow-purple-700/50 border-2 border-purple-500/80'
+                      : 'bg-gradient-to-br from-gray-800/90 to-gray-900/90 text-white/90 hover:bg-gray-700/90 transition-colors shadow-md border border-gray-700/50'
+                      }`}
                   >
                     <div className="text-xs font-medium mb-1">{item.tiles} Tiles</div>
                     <div className="text-xl font-semibold">{item.multiplier.toFixed(2)}x</div>
@@ -1034,7 +1035,7 @@ const Game = ({ betSettings = {}, onGameStatusChange, onGameComplete }) => {
                 ))}
               </div>
             </div>
-            
+
             {safeTiles === 1 ? (
               <div className="text-xs text-center text-yellow-400 font-medium mt-3">
                 Only 1 safe tile with a 25.00x multiplier!

@@ -7,7 +7,7 @@ export default function MainnetWarning() {
   const [showWarning, setShowWarning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [hasShownWarning, setHasShownWarning] = useState(false);
-  const { connected } = useWallet();
+  const { connected, network } = useWallet();
 
   // Detect if user is on mobile
   useEffect(() => {
@@ -20,47 +20,19 @@ export default function MainnetWarning() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Detect Aptos wallet network and show warning automatically
+  // Detect Aptos wallet network from adapter
   useEffect(() => {
-    const readNetwork = async () => {
-      try {
-        if (typeof window !== 'undefined' && window.aptos?.network) {
-          const n = await window.aptos.network();
-          if (n?.name) {
-            const networkName = String(n.name).toLowerCase();
-            setWalletNetworkName(networkName);
+    if (connected && network?.name) {
+      const name = network.name.toLowerCase();
+      setWalletNetworkName(name);
 
-            // Show warning automatically on mobile when connected (only once per wallet connection)
-            if (isMobile && connected && !hasShownWarning) {
-              setShowWarning(true);
-              setHasShownWarning(true);
-            }
-          }
-        }
-      } catch { }
-    };
-
-    if (connected) {
-      readNetwork();
+      // Show warning automatically on mobile when connected (only once per wallet connection)
+      if (isMobile && !hasShownWarning) {
+        setShowWarning(true);
+        setHasShownWarning(true);
+      }
     }
-
-    const off = window?.aptos?.onNetworkChange?.((n) => {
-      try {
-        const networkName = String(n?.name || '').toLowerCase();
-        setWalletNetworkName(networkName);
-
-        // Show warning when network changes (only once per wallet connection)
-        if (isMobile && connected && !hasShownWarning) {
-          setShowWarning(true);
-          setHasShownWarning(true);
-        }
-      } catch { }
-    });
-
-    return () => {
-      try { off && off(); } catch { }
-    };
-  }, [connected, isMobile, hasShownWarning]);
+  }, [connected, network, isMobile, hasShownWarning]);
 
   // Reset warning state when wallet disconnects
   useEffect(() => {
@@ -107,8 +79,8 @@ export default function MainnetWarning() {
 
   return (
     <div className={`fixed top-20 left-0 right-0 z-50 px-4 py-3 text-white shadow-lg ${isTestnet ? 'bg-gradient-to-r from-orange-600 to-red-600' :
-        isMainnet ? 'bg-gradient-to-r from-green-600 to-blue-600' :
-          'bg-gradient-to-r from-gray-600 to-gray-700'
+      isMainnet ? 'bg-gradient-to-r from-green-600 to-blue-600' :
+        'bg-gradient-to-r from-gray-600 to-gray-700'
       }`}>
       <div className="flex items-center justify-between">
         <div className="flex-1">

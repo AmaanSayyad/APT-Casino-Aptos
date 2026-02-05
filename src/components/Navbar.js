@@ -127,10 +127,10 @@ export default function Navbar() {
   // Check if wallet was previously connected on page load
   useEffect(() => {
     const checkWalletConnection = async () => {
-      // Check if Aptos wallet extension is available
-      if (window.aptos && window.aptos.account) {
+      // Check if Aptos wallet is connected
+      if (isConnected && account) {
         console.log('Wallet already connected on page load');
-        // The wallet adapter should automatically reconnect
+        // The wallet adapter automatically handles reconnection
       }
     };
 
@@ -259,19 +259,8 @@ export default function Navbar() {
   };
 
   // Handle deposit to house balance
-  // Wallet reconnection helper
-  const reconnectWallet = async () => {
-    try {
-      if (window.aptos) {
-        await window.aptos.connect();
-        notification.success('Wallet reconnected successfully!');
-      }
-    } catch (error) {
-      notification.error('Failed to reconnect wallet. Please refresh the page.');
-    }
-  };
 
-  // Handle deposit using direct wallet method (bypasses adapter issues)
+  // Handle deposit to house balance using backend hook
   const handleDeposit = async () => {
     if (!isConnected || !account) {
       notification.error('Please connect your wallet first');
@@ -286,170 +275,28 @@ export default function Navbar() {
 
     setIsDepositing(true);
     try {
-      console.log('💰 DIRECT WALLET DEPOSIT:', { address: account.address, amount });
-      console.log('🔍 WALLET DEBUG INFO:');
-      console.log('├── window.aptos exists:', !!window.aptos);
-      console.log('├── wallet object:', wallet);
-      console.log('├── account object:', account);
-      console.log('├── isConnected:', isConnected);
-      console.log('└── signAndSubmitTransaction:', !!signAndSubmitTransaction);
+      console.log('💰 STARTING DEPOSIT:', { address: account.address, amount });
 
-      // Step 1: Send APT directly to treasury using wallet's native method
-      const treasuryAddress = TREASURY_ADDRESS;
-      const amountOctas = Math.floor(amount * 100000000);
+      // Use the proper backendDeposit hook which uses the wallet adapter correctly
+      const result = await backendDeposit(amount);
 
-      console.log('📤 Sending APT to treasury:', { treasuryAddress, amountOctas });
+      if (result.success) {
+        // Update local balance in Redux
+        const currentBalance = parseFloat(userBalance || '0');
+        const newBalance = (currentBalance + (amount * 100000000)).toString();
+        dispatch(setBalance(newBalance));
 
-      // Create the transfer payload (Aptos Wallet Standard)
-      const transferPayload = {
-        type: "entry_function_payload",
-        function: "0x1::coin::transfer",
-        type_arguments: ["0x1::aptos_coin::AptosCoin"],
-        arguments: [treasuryAddress, amountOctas.toString()]
-      };
+        // Success notification is already handled by the hook via toast, 
+        // but we can add our local notification too for UI consistency if needed
+        // notification.success(`Successfully deposited ${amount} APT!`);
 
-      // Provide conservative gas options (Petra expects camelCase keys)
-      const txOptions = (() => {
-        const expire = Math.floor(Date.now() / 1000) + 120; // 2 minutes from now
-        return {
-          maxGasAmount: "200000",
-          gasUnitPrice: "100",
-          expireTimestampSecs: String(expire)
-        };
-      })();
-
-      let transferHash;
-
-      // Skip wallet adapter completely - use direct wallet API only
-      try {
-        console.log('📤 Using direct wallet API (bypassing adapter)...');
-        console.log('📤 Payload:', transferPayload);
-
-        if (!window.aptos) {
-          throw new Error('Petra wallet not detected. Please install Petra wallet.');
-        }
-
-        if (!window.aptos.signAndSubmitTransaction) {
-          throw new Error('Wallet API not available. Please reconnect your wallet.');
-        }
-
-        // Ensure wallet is connected/authorized for the current site
-        try {
-          const isConnectedDirect = await window.aptos.isConnected?.();
-          if (!isConnectedDirect) {
-            await window.aptos.connect();
-          }
-        } catch { }
-
-        // Use direct wallet API with updated payload shape
-        const result = await window.aptos.signAndSubmitTransaction({ payload: transferPayload, options: txOptions });
-
-        if (!result || !result.hash) {
-          throw new Error('Transaction failed - no hash returned from wallet');
-        }
-
-        transferHash = result.hash;
-        console.log('✅ Direct wallet API success:', transferHash);
-
-      } catch (walletError) {
-        console.error('❌ Wallet transaction failed:', walletError);
-        const msg = (() => {
-          try {
-            if (!walletError) return 'Unknown wallet error';
-            // Prefer structured code-based handling when available
-            if (typeof walletError === 'object' && walletError !== null) {
-              const code = walletError.code;
-              if (code === 4001) return 'Transaction cancelled by user';
-              if (code === 4100) return 'Wallet not authorized. Please connect and approve this site in Petra.';
-              const name = walletError.name || walletError.status;
-              const message = walletError.message || '';
-              const combined = `${name ? name + ': ' : ''}${message}`.trim();
-              if (combined.toLowerCase().includes('insufficient')) return 'Insufficient APT balance for transaction';
-              if (combined.toLowerCase().includes('network')) return 'Network error. Please check your connection and try again';
-              return combined || `Wallet error: ${JSON.stringify(walletError)}`;
-            }
-            // Fallback to text parsing
-            const text = typeof walletError === 'string' ? walletError : (walletError.message || JSON.stringify(walletError));
-            if (text.includes('User rejected')) return 'Transaction cancelled by user';
-            if (text.toLowerCase().includes('insufficient')) return 'Insufficient APT balance for transaction';
-            if (text.toLowerCase().includes('network')) return 'Network error. Please check your connection and try again';
-            return `Wallet error: ${text}`;
-          } catch {
-            return 'Unknown wallet error';
-          }
-        })();
-        throw new Error(msg);
+        setDepositAmount("");
+      } else {
+        throw new Error(result.message || 'Deposit failed');
       }
-
-      if (!transferHash) {
-        throw new Error('Transfer failed - no transaction hash');
-      }
-
-      console.log('✅ APT sent to treasury:', transferHash);
-
-      // Step 2: Call backend to process deposit
-      console.log('🏦 Processing deposit via backend...');
-
-      // Derive a normalized user address string (0x + 64 hex) for backend
-      const normalizeAddr = (input) => {
-        try {
-          let addr = '';
-          if (typeof input === 'string') addr = input;
-          else if (input && typeof input === 'object') {
-            if ('address' in input) addr = String(input.address);
-            else if (typeof input.toString === 'function') addr = input.toString();
-          }
-          addr = (addr || '').trim().toLowerCase();
-          let hex = addr.startsWith('0x') ? addr.slice(2) : addr;
-          if (!/^[0-9a-f]+$/.test(hex)) return '';
-          if (hex.length > 64) return '';
-          hex = hex.padStart(64, '0');
-          return `0x${hex}`;
-        } catch { return ''; }
-      };
-      let userAddrForBackend = '';
-      try {
-        const accInfo = await window.aptos?.account?.();
-        userAddrForBackend = normalizeAddr(accInfo?.address);
-      } catch { }
-      if (!userAddrForBackend) {
-        userAddrForBackend = normalizeAddr(account?.address);
-      }
-      console.log('🧭 Backend userAddress:', userAddrForBackend);
-
-      const response = await fetch('/api/deposit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userAddress: userAddrForBackend,
-          amount: amount,
-          transactionHash: transferHash
-        })
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Backend deposit processing failed');
-      }
-
-      console.log('✅ Deposit processed:', result.transactionHash);
-
-      // Update local balance
-      const currentBalance = parseFloat(userBalance || '0');
-      const newBalance = (currentBalance + (amount * 100000000)).toString();
-      dispatch(setBalance(newBalance));
-
-      notification.success(`Successfully deposited ${amount} APT! TX: ${transferHash.slice(0, 8)}...`);
-      setDepositAmount("");
-
-      // Do not refresh from chain here; backend temp mode does not update on-chain balance
-
     } catch (error) {
       console.error('❌ Deposit failed:', error);
-      notification.error(`Deposit failed: ${error.message || 'Unknown error'}`);
+      // Backend hook handles its own error toasts, but we catch here just in case
     } finally {
       setIsDepositing(false);
     }

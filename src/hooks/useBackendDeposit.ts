@@ -16,7 +16,7 @@ interface UseBackendDepositProps {
 export const useBackendDeposit = (props?: UseBackendDepositProps) => {
   const [isDepositing, setIsDepositing] = useState(false);
   const { account, signAndSubmitTransaction: walletSignAndSubmit } = useWallet();
-  
+
   const signAndSubmitTransaction = props?.signAndSubmitTransaction || walletSignAndSubmit;
 
   const deposit = async (amount: number): Promise<DepositResult> => {
@@ -50,44 +50,47 @@ export const useBackendDeposit = (props?: UseBackendDepositProps) => {
 
       // Try different payload formats
       let transferResponse;
-      
+
       try {
-        // Format 1: Standard entry function
+        // Format 1: Modern SDK format (data key)
         const payload1 = {
-          function: "0x1::aptos_account::transfer",
-          type_arguments: [],
-          arguments: [treasuryAddress, amountOctas.toString()],
+          data: {
+            function: "0x1::aptos_account::transfer",
+            typeArguments: [],
+            functionArguments: [treasuryAddress, amountOctas.toString()],
+          }
         };
-        
-        console.log('📤 Trying payload format 1:', payload1);
+
+        console.log('📤 Trying payload format 1 (Modern):', payload1);
         transferResponse = await signAndSubmitTransaction(payload1);
-        
+
       } catch (error1) {
-        console.log('❌ Format 1 failed, trying format 2...');
-        
+        console.log('❌ Format 1 failed, trying format 2 (Legacy payload wrapper)...');
+
         try {
-          // Format 2: With type specified
+          // Format 2: Legacy format wrapped in payload key
           const payload2 = {
-            type: "entry_function_payload",
+            payload: {
+              function: "0x1::aptos_account::transfer",
+              type_arguments: [],
+              arguments: [treasuryAddress, amountOctas.toString()],
+            }
+          };
+
+          console.log('📤 Trying payload format 2 (Legacy Wrapped):', payload2);
+          transferResponse = await signAndSubmitTransaction(payload2);
+
+        } catch (error2) {
+          console.log('❌ Format 2 failed, trying format 3 (Direct payload - last resort)...');
+
+          // Format 3: Direct payload (what we had before, simplified)
+          const payload3 = {
             function: "0x1::aptos_account::transfer",
             type_arguments: [],
             arguments: [treasuryAddress, amountOctas.toString()],
           };
-          
-          console.log('📤 Trying payload format 2:', payload2);
-          transferResponse = await signAndSubmitTransaction(payload2);
-          
-        } catch (error2) {
-          console.log('❌ Format 2 failed, trying format 3...');
-          
-          // Format 3: Coin transfer
-          const payload3 = {
-            function: "0x1::coin::transfer",
-            type_arguments: ["0x1::aptos_coin::AptosCoin"],
-            arguments: [treasuryAddress, amountOctas.toString()],
-          };
-          
-          console.log('📤 Trying payload format 3:', payload3);
+
+          console.log('📤 Trying payload format 3 (Direct):', payload3);
           transferResponse = await signAndSubmitTransaction(payload3);
         }
       }
@@ -136,7 +139,7 @@ export const useBackendDeposit = (props?: UseBackendDepositProps) => {
     } catch (error: any) {
       console.error('❌ DEPOSIT FAILED:', error);
       toast.error(`Deposit failed: ${error.message}`);
-      
+
       return {
         success: false,
         message: error.message || 'Deposit failed',

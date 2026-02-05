@@ -43,20 +43,20 @@ export default function Home() {
   const [showStats, setShowStats] = useState(false);
   const [detectedColor, setDetectedColor] = useState(null);
   const [detectedMultiplier, setDetectedMultiplier] = useState(null);
-  
+
   const dispatch = useDispatch();
   const { userBalance, isLoading: isLoadingBalance } = useSelector((state) => state.balance);
   const notification = useNotification();
   const { logGame } = useGameLogger();
-  const { account } = useWallet();
-  
+  const { account, connected } = useWallet();
+
   // Use ref to prevent infinite loop in useEffect
   const isInitialized = useRef(false);
-  
+
   // Load balance from localStorage on component mount
   useEffect(() => {
     if (isInitialized.current) return; // Prevent multiple executions
-    
+
     const savedBalance = loadBalanceFromStorage();
     if (savedBalance) {
       console.log('Loading saved balance from localStorage:', savedBalance);
@@ -66,7 +66,7 @@ export default function Home() {
       console.log('No saved balance, initializing with zero');
       dispatch(setBalance("0"));
     }
-    
+
     isInitialized.current = true; // Mark as initialized
   }, []); // Empty dependency array since we use ref
 
@@ -82,16 +82,16 @@ export default function Home() {
   const manulBet = async () => {
     if (betAmount <= 0 || isSpinning) return;
 
-     // Check if wallet is connected first
-     if (!window.aptos || !window.aptos.account) {
+    // Check if wallet is connected first
+    if (!connected || !account) {
       alert('Please connect your Aptos wallet first');
       return;
     }
 
-   
+
     const currentBalance = parseFloat(userBalance || '0') / 100000000; // Convert from octas to APT
 
-    
+
     if (currentBalance < betAmount) {
       alert(`Insufficient balance. You have ${currentBalance.toFixed(8)} APT but need ${betAmount} APT`);
       return;
@@ -105,26 +105,26 @@ export default function Home() {
       console.log('Bet amount (APT):', betAmount);
       console.log('Current balance (APT):', currentBalance);
       console.log('Sectors:', noOfSegments);
-      
+
       // Deduct bet amount from Redux balance
       const betAmountInOctas = betAmount * 100000000; // Convert to octas
       const newBalance = (parseFloat(userBalance || '0') - betAmountInOctas).toString();
       dispatch(setBalance(newBalance));
-      
+
       console.log('Balance deducted. New balance:', (parseFloat(newBalance) / 100000000).toFixed(8), 'APT');
-      
+
       // Set up callback to handle wheel animation completion
       window.wheelBetCallback = (landedMultiplier) => {
         console.log('🎯 Wheel animation completed with multiplier:', landedMultiplier);
-        
+
         // Stop spinning immediately when animation completes
         setIsSpinning(false);
-        
+
         // Wait a moment for color detection to update, then get the REAL result
         setTimeout(() => {
           let actualMultiplier = 0;
           let detectedColor = "#333947";
-          
+
           // Get the final result from color detection
           if (window.triggerWheelColorDetection) {
             const detectionResult = window.triggerWheelColorDetection();
@@ -140,9 +140,9 @@ export default function Home() {
             console.log('⚠️ Color detection not available, using landed multiplier:', landedMultiplier);
             actualMultiplier = landedMultiplier;
           }
-          
+
           const winAmount = betAmount * actualMultiplier;
-          
+
           // Add to game history
           const newHistoryItem = {
             id: Date.now(),
@@ -156,10 +156,10 @@ export default function Home() {
             txHash: null
           };
 
-         
+
 
           setGameHistory(prev => [newHistoryItem, ...prev]);
-          
+
           // Log game to blockchain
           if (account?.address) {
             const gameResult = `${risk}_${noOfSegments}segments_${actualMultiplier.toFixed(2)}x_${detectedColor}`;
@@ -185,37 +185,37 @@ export default function Home() {
 
           setIsSpinning(false);
           setHasSpun(true);
-          
+
           // Show result and update balance
           if (actualMultiplier > 0) {
             notification.success(`Congratulations! ${betAmount} APT × ${actualMultiplier.toFixed(2)} = ${winAmount.toFixed(8)} APT won!`);
-            
+
             // Update balance with winnings
             const currentBalanceOctas = parseFloat(userBalance || '0');
             const winAmountOctas = Math.floor(winAmount * 100000000);
             const newBalanceWithWin = currentBalanceOctas + winAmountOctas;
-            
+
             console.log('💰 Adding winnings:', {
               currentBalance: (currentBalanceOctas / 100000000).toFixed(8),
               winAmount: winAmount.toFixed(8),
               newBalance: (newBalanceWithWin / 100000000).toFixed(8)
             });
-            
+
             dispatch(setBalance(newBalanceWithWin.toString()));
           } else {
             notification.info(`Game over. Multiplier: ${actualMultiplier.toFixed(2)}x`);
           }
-          
+
           // Clean up callback
           window.wheelBetCallback = null;
         }, 300); // Wait for color detection to update
       };
-      
+
     } catch (e) {
       console.error('Bet failed:', e);
       alert(`Bet failed: ${e?.message || e}`);
       setIsSpinning(false);
-      
+
       // Refund the deducted balance on error
       dispatch(setBalance(userBalance));
     }
@@ -232,13 +232,13 @@ export default function Home() {
     noOfSegments,
   }) => {
     // Check if wallet is connected first
-    if (!window.aptos || !window.aptos.account) {
+    if (!connected || !account) {
       alert('Please connect your Aptos wallet first');
       return;
     }
-    
-   
-    
+
+
+
     if (isSpinning) return; // Prevent overlapping spins
 
     let currentBet = initialBetAmount;
@@ -248,7 +248,7 @@ export default function Home() {
       // Check Redux balance before each bet
       const currentBalance = parseFloat(userBalance || '0') / 100000000; // Convert from octas to APT
 
-      
+
       if (currentBalance < currentBet) {
         alert(`Insufficient balance for bet ${i + 1}. Need ${currentBet} APT but have ${currentBalance.toFixed(8)} APT`);
         break;
@@ -256,7 +256,7 @@ export default function Home() {
 
       setIsSpinning(true);
       setHasSpun(false);
-      
+
       // Deduct bet amount from Redux balance
       const betAmountInOctas = currentBet * 100000000; // Convert to octas
       const newBalance = (parseFloat(userBalance || '0') - betAmountInOctas).toString();
@@ -265,14 +265,14 @@ export default function Home() {
 
       // Calculate result position
       const resultPosition = Math.floor(Math.random() * noOfSegments);
-      
+
       // Get the wheel data based on risk level to determine proper multipliers
       let wheelSegmentData;
       if (risk === "high") {
         const highRiskData = wheelDataByRisk.high(noOfSegments);
         const zeroSegments = Math.round((1 - getHighRiskProbability(noOfSegments)) * noOfSegments);
-        wheelSegmentData = resultPosition < zeroSegments ? 
-          { multiplier: 0.0, color: "#333947" } : 
+        wheelSegmentData = resultPosition < zeroSegments ?
+          { multiplier: 0.0, color: "#333947" } :
           { multiplier: getHighRiskMultiplier(noOfSegments), color: "#D72E60" };
       } else if (risk === "medium") {
         // For medium risk, alternate between zero and non-zero multipliers
@@ -295,12 +295,12 @@ export default function Home() {
         if (resultPosition % 2 === 0) {
           wheelSegmentData = { multiplier: 1.2, color: "#D9D9D9" };
         } else {
-          wheelSegmentData = resultPosition % 4 === 1 ? 
-            { multiplier: 0.0, color: "#333947" } : 
+          wheelSegmentData = resultPosition % 4 === 1 ?
+            { multiplier: 0.0, color: "#333947" } :
             { multiplier: 1.5, color: "#00E403" };
         }
       }
-      
+
       // Set wheel position first
       setWheelPosition(resultPosition);
 
@@ -309,7 +309,7 @@ export default function Home() {
 
       // Now get the REAL multiplier from color detection
       let actualMultiplier = 0;
-      
+
       // Trigger color detection and get the REAL result
       if (window.triggerWheelColorDetection) {
         const detectionResult = window.triggerWheelColorDetection();
@@ -340,20 +340,20 @@ export default function Home() {
         const currentBalance = parseFloat(userBalance || '0') / 100000000; // Convert from octas to APT
         const newBalanceWithWin = currentBalance + winAmount;
         const newBalanceWithWinOctas = Math.floor(newBalanceWithWin * 100000000); // Convert back to octas
-        
+
         console.log('💰 Auto bet winnings:', {
           currentBalance: currentBalance.toFixed(5),
           winAmount: winAmount.toFixed(5),
           newBalance: newBalanceWithWin.toFixed(5)
         });
-        
+
         dispatch(setBalance(newBalanceWithWinOctas.toString()));
       }
 
       // Update total profit
       const profit = winAmount - currentBet;
       totalProfit += profit;
-      
+
       // Show notification for win
       if (actualMultiplier > 0) {
         notification.success(`Congratulations! ${currentBet} APT × ${actualMultiplier.toFixed(2)} = ${winAmount.toFixed(8)} APT won!`);
@@ -371,7 +371,7 @@ export default function Home() {
         color: wheelSegmentData.color
       };
 
-     
+
 
       setGameHistory(prev => [newHistoryItem, ...prev]);
 
@@ -411,14 +411,14 @@ export default function Home() {
       totalVolume: '8.3M APTC',
       maxWin: '243,500 APTC'
     };
-    
+
     return (
       <div className="relative text-white px-4 md:px-8 lg:px-20 mb-8 pt-28 md:pt-32 mt-4">
         {/* Background Elements */}
         <div className="absolute top-5 -right-32 w-64 h-64 bg-red-500/10 rounded-full blur-3xl"></div>
         <div className="absolute top-28 left-1/3 w-32 h-32 bg-green-500/10 rounded-full blur-2xl"></div>
         <div className="absolute -bottom-20 left-1/4 w-48 h-48 bg-purple-500/5 rounded-full blur-3xl"></div>
-        
+
         <div className="relative">
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
             {/* Left Column - Game Info */}
@@ -428,7 +428,7 @@ export default function Home() {
                   <GiWheelbarrow className="text-3xl text-red-300" />
                 </div>
                 <div>
-                  <motion.div 
+                  <motion.div
                     className="flex items-center gap-2"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -438,7 +438,7 @@ export default function Home() {
                     <span className="text-xs px-2 py-0.5 bg-red-900/30 rounded-full text-red-300 font-display">Classic</span>
                     <span className="text-xs px-2 py-0.5 bg-green-900/30 rounded-full text-green-300 font-display">Live</span>
                   </motion.div>
-                  <motion.h1 
+                  <motion.h1
                     className="text-3xl md:text-4xl font-bold font-display bg-gradient-to-r from-red-300 to-amber-300 bg-clip-text text-transparent"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -448,7 +448,7 @@ export default function Home() {
                   </motion.h1>
                 </div>
               </div>
-              <motion.p 
+              <motion.p
                 className="text-white/70 mt-2 max-w-xl font-sans"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -456,9 +456,9 @@ export default function Home() {
               >
                 Place your bets and experience the thrill of the spinning wheel. From simple risk levels to customizable segments, the choice is yours.
               </motion.p>
-              
+
               {/* Game highlights */}
-              <motion.div 
+              <motion.div
                 className="flex flex-wrap gap-4 mt-4"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -478,12 +478,12 @@ export default function Home() {
                 </div>
               </motion.div>
             </div>
-            
+
             {/* Right Column - Stats and Controls */}
             <div className="md:w-1/2">
               <div className="bg-gradient-to-br from-red-900/20 to-red-800/5 rounded-xl p-4 border border-red-800/20 shadow-lg shadow-red-900/10">
                 {/* Quick stats in top row */}
-                <motion.div 
+                <motion.div
                   className="grid grid-cols-3 gap-2 mb-4"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -496,7 +496,7 @@ export default function Home() {
                     <div className="text-xs text-white/50 font-sans text-center">Total Bets</div>
                     <div className="text-white font-display text-sm md:text-base">{gameStatistics.totalBets}</div>
                   </div>
-                  
+
                   <div className="flex flex-col items-center p-2 bg-black/20 rounded-lg">
                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-600/20 mb-1">
                       <FaCoins className="text-yellow-400" />
@@ -504,7 +504,7 @@ export default function Home() {
                     <div className="text-xs text-white/50 font-sans text-center">Volume</div>
                     <div className="text-white font-display text-sm md:text-base">{gameStatistics.totalVolume}</div>
                   </div>
-                  
+
                   <div className="flex flex-col items-center p-2 bg-black/20 rounded-lg">
                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-600/20 mb-1">
                       <FaTrophy className="text-yellow-500" />
@@ -513,7 +513,7 @@ export default function Home() {
                     <div className="text-white font-display text-sm md:text-base">{gameStatistics.maxWin}</div>
                   </div>
                 </motion.div>
-                
+
                 {/* Quick actions */}
                 <motion.div
                   className="flex flex-wrap justify-between gap-2"
@@ -521,21 +521,21 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.4 }}
                 >
-                  <button 
+                  <button
                     onClick={() => scrollToSection('strategy-guide')}
                     className="flex items-center justify-center px-4 py-2 bg-gradient-to-r from-red-800/40 to-red-900/20 rounded-lg text-white font-medium text-sm hover:from-red-700/40 hover:to-red-800/20 transition-all duration-300"
                   >
                     <GiCardRandom className="mr-2" />
                     Strategy Guide
                   </button>
-                  <button 
+                  <button
                     onClick={() => scrollToSection('probability')}
                     className="flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-800/40 to-blue-900/20 rounded-lg text-white font-medium text-sm hover:from-blue-700/40 hover:to-blue-800/20 transition-all duration-300"
                   >
                     <HiOutlineChartBar className="mr-2" />
                     Probabilities
                   </button>
-                  <button 
+                  <button
                     onClick={() => scrollToSection('history')}
                     className="flex items-center justify-center px-4 py-2 bg-gradient-to-r from-purple-800/40 to-purple-900/20 rounded-lg text-white font-medium text-sm hover:from-purple-700/40 hover:to-purple-800/20 transition-all duration-300"
                   >
@@ -598,7 +598,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-      
+
       {/* Video and Description Section */}
       <div className="px-4 md:px-8 lg:px-20 my-12">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -610,7 +610,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-      
+
       {/* Strategy Guide and Probabilities Section */}
       <div className="px-4 md:px-8 lg:px-20 my-12">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -622,7 +622,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-      
+
       {/* Payouts and History Section */}
       <div className="px-4 md:px-8 lg:px-20 my-12">
         <div className="flex flex-col gap-12">
@@ -631,7 +631,7 @@ export default function Home() {
         </div>
       </div>
 
-      
+
     </div>
   );
 }

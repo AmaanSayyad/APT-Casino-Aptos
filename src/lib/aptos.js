@@ -112,7 +112,13 @@ export async function signAndSubmitTransaction(wallet, payload) {
   }
 
   try {
-    const response = await wallet.signAndSubmitTransaction(payload);
+    // Wrap payload in an object with a 'payload' property if it's a direct payload
+    // and doesn't already have one. Most wallet adapters expect this shape.
+    const transaction = (payload && !payload.payload && !payload.data)
+      ? { payload }
+      : payload;
+
+    const response = await wallet.signAndSubmitTransaction(transaction);
     return response;
   } catch (error) {
     console.error("Transaction failed:", error);
