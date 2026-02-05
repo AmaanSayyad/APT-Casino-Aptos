@@ -145,7 +145,7 @@ export default function Home() {
 
           // Add to game history
           const newHistoryItem = {
-            id: Date.now(),
+            id: `${Date.now()}-${Math.floor(Math.random() * 1000000)}`,
             game: 'Wheel',
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             betAmount: betAmount.toFixed(5),
@@ -171,12 +171,11 @@ export default function Home() {
               payout: winAmount,
             }).then(res => {
               if (res?.success) {
-                setGameHistory(prev => {
-                  if (prev.length === 0) return prev;
-                  const [first, ...rest] = prev;
-                  const updatedFirst = { ...first, txHash: res.transactionHash || null };
-                  return [updatedFirst, ...rest];
-                });
+                setGameHistory(prev => prev.map(item =>
+                  item.id === newHistoryItem.id
+                    ? { ...item, txHash: res.transactionHash || null }
+                    : item
+                ));
               }
             }).catch(error => {
               console.error('Failed to log wheel game:', error);

@@ -16,7 +16,7 @@ import { FaPercentage, FaBalanceScale, FaChartLine, FaCoins, FaTrophy, FaPlay, F
 
 export default function Plinko() {
   const userBalance = useSelector((state) => state.balance.userBalance);
-  
+
   const [currentRows, setCurrentRows] = useState(15);
   const [currentRiskLevel, setCurrentRiskLevel] = useState("Medium");
   const [currentBetAmount, setCurrentBetAmount] = useState(0);
@@ -194,7 +194,20 @@ export default function Plinko() {
   };
 
   const handleBetHistoryChange = (newBetResult) => {
-    setGameHistory(prev => [newBetResult, ...prev].slice(0, 100)); // Keep up to last 100 entries
+    setGameHistory(prev => {
+      // Check if this entry already exists (e.g. updating with TX hash)
+      const existingIndex = prev.findIndex(item => item.id === newBetResult.id);
+
+      if (existingIndex !== -1) {
+        // Update existing entry
+        const updatedHistory = [...prev];
+        updatedHistory[existingIndex] = newBetResult;
+        return updatedHistory;
+      } else {
+        // Add new entry
+        return [newBetResult, ...prev].slice(0, 100);
+      }
+    });
   };
 
   const handleRowChange = (newRows) => {
@@ -239,8 +252,8 @@ export default function Plinko() {
         <div className="flex flex-col xl:flex-row gap-8">
           {/* Left Panel - Game Controls */}
           <div className="w-full xl:w-1/4">
-            <GameControls 
-              onBet={handleBet} 
+            <GameControls
+              onBet={handleBet}
               onRowChange={handleRowChange}
               onRiskLevelChange={handleRiskLevelChange}
               onBetAmountChange={handleBetAmountChange}
@@ -251,9 +264,9 @@ export default function Plinko() {
 
           {/* Right Panel - Plinko Board */}
           <div className="w-full xl:w-3/4" id="payouts">
-            <PlinkoGame 
+            <PlinkoGame
               key={`plinko-${currentRows}-${currentRiskLevel}`}
-              ref={plinkoGameRef} 
+              ref={plinkoGameRef}
               rowCount={currentRows}
               riskLevel={currentRiskLevel}
               onRowChange={handleRowChange}
@@ -266,11 +279,11 @@ export default function Plinko() {
 
       {/* Game Description with Video */}
       <div className="px-4 md:px-8 lg:px-20 pb-12">
-        <Typography 
-          variant="h4" 
-          color="white" 
-          sx={{ 
-            mb: 6, 
+        <Typography
+          variant="h4"
+          color="white"
+          sx={{
+            mb: 6,
             textAlign: 'center',
             background: 'linear-gradient(45deg, #d82633, #681DDB)',
             backgroundClip: 'text',
@@ -284,7 +297,7 @@ export default function Plinko() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           {/* Video on left */}
           <div>
-            
+
             <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl border-2 border-purple-600/40 transition-all duration-300 hover:scale-[1.02] hover:border-purple-500/60"
               style={{
                 background: 'linear-gradient(135deg, rgba(104, 29, 219, 0.1), rgba(216, 38, 51, 0.05))',
@@ -301,7 +314,7 @@ export default function Plinko() {
               />
             </div>
           </div>
-          
+
           {/* Description on right */}
           <div className="bg-[#1A0015] rounded-xl border border-[#333947] p-6 text-gray-300">
             <h3 className="text-lg font-semibold text-white mb-4">How to Play {gameData.title}</h3>

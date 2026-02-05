@@ -193,7 +193,7 @@ function GridInside({
       29: "25,26,28,29", // Middle-left corner
       32: "28,29,31,32", // Middle-left corner
       35: "31,32,33,35", // Middle-right corner
-      
+
       3: "2,3,0",        // Top-left corner
       6: "2,3,5,6",      // Top-left corner
       9: "5,6,8,9",      // Top-left corner
@@ -223,7 +223,7 @@ function GridInside({
       1: "0,1",      // Bottom-left split with 0
       2: "0,2",      // Middle-left split with 0
       3: "0,3",      // Top-left split with 0
-      
+
       4: "1,4",      // Bottom-left split
       7: "4,7",      // Bottom-left split
       10: "7,10",    // Bottom-left split
@@ -235,7 +235,7 @@ function GridInside({
       28: "25,28",   // Bottom-left split
       31: "28,31",   // Bottom-left split
       34: "31,34",   // Bottom-left split
-      
+
       5: "2,5",      // Middle-left split
       8: "5,8",      // Middle-left split
       11: "8,11",    // Middle-left split
@@ -247,7 +247,7 @@ function GridInside({
       29: "26,29",   // Middle-left split
       32: "29,32",   // Middle-left split
       35: "32,35",   // Middle-left split
-      
+
       6: "3,6",      // Top-left split
       9: "6,9",      // Top-left split
       12: "9,12",    // Top-left split
@@ -307,12 +307,12 @@ function GridInside({
         35: "34,35",   // Split 35: 34,35 - Changed from street to split
         36: "35,36"    // Split 36: 35,36 - Changed from street to split
       };
-      
+
       const splitNumbers = bottomSplitMap[insideNumber];
       if (splitNumbers) {
         return `Split ${splitNumbers.replace(',', '-')}`;
       }
-      
+
       // Fallback to old calculation if not in map
       const bottomNumber = insideNumber + 3;
       return `Split ${insideNumber}-${bottomNumber}`;
@@ -429,7 +429,7 @@ function GridInside({
                 29: "25,26,28,29", // Middle-left corner
                 32: "28,29,31,32", // Middle-left corner
                 35: "31,32,33,35", // Middle-right corner
-                
+
                 3: "2,3,0",        // Top-left corner
                 6: "2,3,5,6",      // Top-left corner
                 9: "5,6,8,9",      // Top-left corner
@@ -443,7 +443,7 @@ function GridInside({
                 33: "29,30,32,33", // Top-left corner
                 36: "32,33,35,36"  // Top-right corner
               };
-              
+
               // Only render corner bet area if this number has a corner definition
               if (cornerMap[insideNumber]) {
                 return (
@@ -840,7 +840,7 @@ const BettingStats = ({ history }) => {
     // Calculate profit/loss
     // payout field now contains the net result (positive for wins, negative for losses)
     const totalProfitLoss = history.reduce((sum, bet) => sum + bet.payout, 0);
-    
+
     // profitLoss is the actual net profit/loss from all bets
     const profitLoss = totalProfitLoss;
 
@@ -1581,7 +1581,7 @@ export default function GameRoulette() {
 
       // Store original balance for calculation
       const originalBalance = parseFloat(userBalance || '0');
-      
+
       // Check if user has enough balance
       if (originalBalance < totalBetAmount * 100000000) {
         alert(`Insufficient balance. You have ${(originalBalance / 100000000).toFixed(8)} APT but need ${totalBetAmount} APT`);
@@ -1589,12 +1589,12 @@ export default function GameRoulette() {
         setWheelSpinning(false);
         return;
       }
-      
+
       // Deduct bet amount immediately from balance
       const betAmountInOctas = totalBetAmount * 100000000;
       const balanceAfterBet = originalBalance - betAmountInOctas;
       dispatch(setBalance(balanceAfterBet.toString()));
-      
+
       console.log("Balance deducted:", {
         originalBalance: originalBalance / 100000000,
         betAmount: totalBetAmount,
@@ -1648,9 +1648,9 @@ export default function GameRoulette() {
           // Index 1-4: Number 1 (straight=1, split-left=2, split-bottom=3, corner=4)
           // Index 5-8: Number 2 (straight=5, split-left=6, split-bottom=7, corner=8)
           // Formula: (number-1)*4 + betType for numbers 1-36
-          
+
           let actualNumber, betPosition;
-          
+
           if (index === 0) {
             // Special case for number 0 - only straight bet
             actualNumber = 0;
@@ -1682,7 +1682,7 @@ export default function GameRoulette() {
               1: "0,1",      // Bottom-left split with 0
               2: "0,2",      // Middle-left split with 0
               3: "0,3",      // Top-left split with 0
-              
+
               4: "1,4",      // Bottom-left split
               7: "4,7",      // Bottom-left split
               10: "7,10",    // Bottom-left split
@@ -1694,7 +1694,7 @@ export default function GameRoulette() {
               28: "25,28",   // Bottom-left split
               31: "28,31",   // Bottom-left split
               34: "31,34",   // Bottom-left split
-              
+
               5: "2,5",      // Middle-left split
               8: "5,8",      // Middle-left split
               11: "8,11",    // Middle-left split
@@ -1706,7 +1706,7 @@ export default function GameRoulette() {
               29: "26,29",   // Middle-left split
               32: "29,32",   // Middle-left split
               35: "32,35",   // Middle-left split
-              
+
               6: "3,6",      // Top-left split
               9: "6,9",      // Top-left split
               12: "9,12",    // Top-left split
@@ -1719,7 +1719,7 @@ export default function GameRoulette() {
               33: "30,33",   // Top-left split
               36: "33,36"    // Top-left split
             };
-            
+
             const splitNumbers = splitMap[actualNumber];
             if (splitNumbers) {
               // Use the actualNumber (where bet was placed) to get split definition
@@ -1762,7 +1762,7 @@ export default function GameRoulette() {
                 35: "34,35",   // Split 35: 34,35 - Changed from street to split
                 36: "35,36"    // Split 36: 35,36 - Changed from street to split
               };
-              
+
               const splitNumbers = bottomSplitMap[actualNumber];
               if (splitNumbers) {
                 allBets.push({ type: BetType.SPLIT, value: splitNumbers, amount, name: `Split ${actualNumber} (${splitNumbers.replace(',', '-')})` });
@@ -1801,7 +1801,7 @@ export default function GameRoulette() {
               35: "34,35",   // Split 35: 34,35
               36: "35,36"    // Split 36: 35,36
             };
-            
+
             const horizontalSplitNumbers = horizontalSplitMap[actualNumber];
             if (horizontalSplitNumbers) {
               // Use the actualNumber (where bet was placed) to get split definition
@@ -1824,7 +1824,7 @@ export default function GameRoulette() {
               29: "25,26,28,29", // Middle-left corner
               32: "28,29,31,32", // Middle-left corner
               35: "31,32,33,35", // Middle-right corner
-              
+
               3: "2,3,0",      // Top-left corner
               6: "2,3,5,6",      // Top-left corner
               9: "5,6,8,9",     // Top-left corner
@@ -1910,7 +1910,7 @@ export default function GameRoulette() {
         // netResult should be just the winnings (totalPayout includes original bet)
         const netResult = totalPayout > 0 ? totalPayout : 0;
         setWinnings(netResult);
-        
+
         console.log("🎯 WINNINGS CALCULATION:", {
           totalPayout,
           totalBetAmount,
@@ -1946,7 +1946,7 @@ export default function GameRoulette() {
 
         // Add to betting history
         const newBet = {
-          id: Date.now(),
+          id: `${Date.now()}-${Math.floor(Math.random() * 1000000)}`,
           timestamp: new Date(),
           betType: `Multiple Bets (${allBets.length})`,
           amount: totalBetAmount,
@@ -1985,12 +1985,11 @@ export default function GameRoulette() {
             payout: netResult > 0 ? (netResult - totalBetAmount) : 0,
           }).then(res => {
             if (res?.success) {
-              setBettingHistory(prev => {
-                if (prev.length === 0) return prev;
-                const [first, ...rest] = prev;
-                const updatedFirst = { ...first, txHash: res.transactionHash || null };
-                return [updatedFirst, ...rest];
-              });
+              setBettingHistory(prev => prev.map(item =>
+                item.id === newBet.id
+                  ? { ...item, txHash: res.transactionHash || null }
+                  : item
+              ));
             }
           }).catch(error => {
             console.error('Failed to log roulette game:', error);
@@ -3172,7 +3171,7 @@ export default function GameRoulette() {
           <Grid container spacing={4} sx={{ mb: 7 }}>
             {/* Video on left */}
             <Grid xs={12} md={6}>
-              
+
               <Box
                 sx={{
                   position: 'relative',
@@ -3396,8 +3395,8 @@ export default function GameRoulette() {
                 {winnings > 0
                   ? `🎉 You won ${winnings.toFixed(4)} APT!`
                   : winnings < 0
-                  ? `💸 You lost ${Math.abs(winnings).toFixed(4)} APT!`
-                  : "🤝 Break even!"}
+                    ? `💸 You lost ${Math.abs(winnings).toFixed(4)} APT!`
+                    : "🤝 Break even!"}
               </Typography>
             )}
           </MuiAlert>

@@ -11,7 +11,7 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
   const userBalance = useSelector((state) => state.balance.userBalance);
   const { logGame } = useGameLogger();
   const { account } = useWallet();
-  
+
   const [isDropping, setIsDropping] = useState(false);
   const [ballPosition, setBallPosition] = useState(null);
   const [hitPegs, setHitPegs] = useState(new Set());
@@ -19,27 +19,27 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
   const [currentRiskLevel, setCurrentRiskLevel] = useState(riskLevel);
   const [isRecreating, setIsRecreating] = useState(false);
   const [betHistory, setBetHistory] = useState([]);
-  
+
   // Physics engine refs
   const engineRef = useRef(null);
   const renderRef = useRef(null);
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
-  
+
   // Audio refs (drop and bin land only)
   const ballDropAudioRef = useRef(null);
   const binLandAudioRef = useRef(null);
-  
+
   const playAudio = (ref) => {
     try {
       const audio = ref.current;
       if (audio) {
         audio.currentTime = 0;
-        audio.play().catch(() => {});
+        audio.play().catch(() => { });
       }
-    } catch {}
+    } catch { }
   };
-  
+
   useEffect(() => {
     if (ballDropAudioRef.current) ballDropAudioRef.current.volume = 0.6;
     if (binLandAudioRef.current) binLandAudioRef.current.volume = 0.7;
@@ -55,16 +55,16 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
     setCurrentRiskLevel(riskLevel);
     setBallPosition(null);
     setHitPegs(new Set());
-    
+
     // Keep bet amount when configuration changes, it will be updated via betAmount prop
     console.log('PlinkoGame: Configuration changed, current bet amount:', parseFloat(betAmount) || 0);
-    
+
     // Clear any existing ball or game state
     if (engineRef.current) {
       const Engine = Matter.Engine;
       Engine.clear(engineRef.current);
     }
-    
+
     // Small delay to show loading state and ensure cleanup
     setTimeout(() => {
       setIsRecreating(false);
@@ -83,7 +83,7 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
   const PADDING_X = 52;
   const PADDING_TOP = 36;
   const PADDING_BOTTOM = 28;
-  
+
   // Pin and ball categories for collision filtering
   const PIN_CATEGORY = 0x0001;
   const BALL_CATEGORY = 0x0002;
@@ -206,7 +206,7 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
         }
       }
     };
-    
+
     // Get the risk level config, default to Medium if invalid
     const riskConfig = configs[riskLevel] || configs.Medium;
     // Get the row config, default to 16 rows if invalid
@@ -231,8 +231,8 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
     // For the last row, we need to distribute binCount pins across the available width
     const availableWidth = CANVAS_WIDTH - PADDING_X * 2;
     // Slightly increase pin distance for 16 rows to better align with reward boxes
-    const pinDistanceX = rows === 16 ? 
-      (availableWidth / (binCount - 1)) * 1.05 : 
+    const pinDistanceX = rows === 16 ?
+      (availableWidth / (binCount - 1)) * 1.05 :
       availableWidth / (binCount - 1);
     console.log(`Pin distance X: ${pinDistanceX} for ${binCount} bins, available width: ${availableWidth}`);
     return pinDistanceX;
@@ -247,12 +247,12 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
     const pins = [];
     const pinsLastRowXCoords = [];
     let pegId = 0;
-    
+
     const pinDistanceX = getPinDistanceX(rows);
-    
+
     for (let row = 0; row < rows; row++) {
       const rowY = PADDING_TOP + ((CANVAS_HEIGHT - PADDING_TOP - PADDING_BOTTOM) / (rows - 1)) * row;
-      
+
       // Calculate pins in this row - EXACTLY from AnsonH/plinko-game
       let pinsInRow;
       if (row === rows - 1) {
@@ -262,13 +262,13 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
         // Other rows follow the pattern: 3 + row (starts with 3, adds 1 per row)
         pinsInRow = 3 + row;
       }
-      
+
       // Center the pins in each row
       const rowPaddingX = PADDING_X + ((CANVAS_WIDTH - PADDING_X * 2 - pinDistanceX * (pinsInRow - 1)) / 2);
-      
+
       for (let col = 0; col < pinsInRow; col++) {
         const colX = rowPaddingX + pinDistanceX * col;
-        
+
         pins.push({
           id: pegId++,
           row,
@@ -276,16 +276,16 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
           x: colX,
           y: rowY
         });
-        
+
         // Store last row x coordinates for bin detection
         if (row === rows - 1) {
           pinsLastRowXCoords.push(colX);
         }
       }
     }
-    
+
     console.log(`Generated ${pins.length} pins for ${rows} rows, last row has ${pinsLastRowXCoords.length} pins`);
-    console.log(`Row breakdown: ${Array.from({length: rows}, (_, i) => i === rows - 1 ? binCount + 1 : 3 + i)}`);
+    console.log(`Row breakdown: ${Array.from({ length: rows }, (_, i) => i === rows - 1 ? binCount + 1 : 3 + i)}`);
     console.log(`First row pins: ${pins.filter(p => p.row === 0).map(p => p.x.toFixed(1))}`);
     console.log(`Last row pins: ${pinsLastRowXCoords.map(x => x.toFixed(1))}`);
     return { pins, pinsLastRowXCoords };
@@ -357,7 +357,7 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
     const firstPinX = pins[0].x;
     const lastRowFirstPinX = pinsLastRowXCoords[0];
     const lastRowLastPinX = pinsLastRowXCoords[pinsLastRowXCoords.length - 1];
-    
+
     // Calculate wall angles based on the first and last row pin positions
     const leftWallAngle = Math.atan2(
       firstPinX - lastRowFirstPinX,
@@ -367,7 +367,7 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
       lastRowLastPinX - firstPinX,
       CANVAS_HEIGHT - PADDING_TOP - PADDING_BOTTOM,
     );
-    
+
     // Position walls slightly outside the pin boundaries
     const leftWallX = lastRowFirstPinX - getPinDistanceX(rows) * 0.5;
     const rightWallX = lastRowLastPinX + getPinDistanceX(rows) * 0.5;
@@ -383,7 +383,7 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
         render: { visible: false },
       },
     );
-    
+
     const rightWall = Bodies.rectangle(
       rightWallX,
       CANVAS_HEIGHT / 2,
@@ -416,13 +416,13 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
     Events.on(engine, 'collisionStart', (event) => {
       event.pairs.forEach(pair => {
         const { bodyA, bodyB } = pair;
-        
+
         // Check if ball hit a peg
         if (bodyA.pegId !== undefined || bodyB.pegId !== undefined) {
           const pegBody = bodyA.pegId !== undefined ? bodyA : bodyB;
           setHitPegs(prev => new Set([...prev, pegBody.pegId]));
         }
-        
+
         // Check if ball hit sensor (reached bottom)
         if (bodyA === sensor || bodyB === sensor) {
           const ball = bodyA === sensor ? bodyB : bodyA;
@@ -449,7 +449,7 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
         }
       }
       const binIndex = Math.max(0, Math.min(gaps - 1, nearestIndex));
-      
+
       // Debug: Log the bin detection process
       console.log('=== BIN DETECTION DEBUG ===');
       console.log('Row configuration:', rows, 'rows,', riskLevel, 'risk');
@@ -459,38 +459,38 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
       console.log('Multipliers array length:', multipliers.length);
       console.log('Multipliers:', multipliers);
       console.log('==========================');
-      
+
       // Ensure binIndex is within valid range for multipliers array
       if (binIndex !== -1 && binIndex < multipliers.length) {
         // Set landing animation state
         setBallPosition(binIndex);
-        
+
         // Calculate reward based on multiplier and bet amount (16 row logic)
         const multiplier = multipliers[binIndex];
         const multiplierValue = parseFloat(multiplier.replace('x', ''));
-        
+
         // Use latest bet amount from ref to avoid stale values captured by closures
         const latestBetAmount = betAmountRef.current;
         const reward = latestBetAmount * multiplierValue;
-        
+
         console.log('=== GAME RESULT ===');
         console.log('Row configuration:', rows, 'rows,', riskLevel, 'risk');
         console.log('Bet amount (latest):', betAmountRef.current);
         console.log('Multiplier:', multiplier, '(bin index:', binIndex, ')');
         console.log('Reward calculated:', reward, 'APT');
         console.log('==================');
-        
+
         // Add reward to current balance (bet amount already deducted when ball was spawned)
         if (latestBetAmount > 0) {
           console.log('Adding reward to balance:');
           console.log('  Current balance from Redux:', userBalance);
           console.log('  Current balance in APT:', parseFloat(userBalance) / 100000000);
           console.log('  Reward to add:', reward);
-          
+
           const currentBalance = parseFloat(userBalance);
           const rewardInReduxUnit = reward * 100000000;
           const finalBalance = (currentBalance + rewardInReduxUnit).toFixed(2);
-          
+
           console.log('Reward addition:');
           console.log('  Current balance (Redux unit):', currentBalance);
           console.log('  Current balance (APT):', (currentBalance / 100000000).toFixed(3));
@@ -498,16 +498,16 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
           console.log('  Reward added (APT):', reward);
           console.log('  Final balance (Redux unit):', finalBalance);
           console.log('  Final balance (APT):', (parseFloat(finalBalance) / 100000000).toFixed(3));
-          
+
           dispatch(addToBalance(rewardInReduxUnit));
         }
-        
+
         // Play bin land sound
         playAudio(binLandAudioRef);
-        
+
         // Add to bet history
         const newBetResult = {
-          id: Date.now(),
+          id: `${Date.now()}-${Math.floor(Math.random() * 1000000)}`, // Stronger unique ID
           game: "Plinko",
           title: new Date().toLocaleTimeString(),
           betAmount: latestBetAmount.toFixed(2),
@@ -521,12 +521,12 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
           const updated = [newBetResult, ...prev.slice(0, 99)]; // Keep last 100
           return updated;
         });
-        
+
         // Notify parent component about bet history change
         if (onBetHistoryChange) {
           onBetHistoryChange(newBetResult);
         }
-        
+
         // Log game to blockchain
         if (account?.address && latestBetAmount > 0) {
           const gameResult = `${rows}rows_${riskLevel}_bin${binIndex}_${multiplier}`;
@@ -540,12 +540,11 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
             if (res?.success) {
               console.log('Game successfully logged to blockchain');
               // attach tx hash to latest history entry
-              setBetHistory(prev => {
-                if (prev.length === 0) return prev;
-                const [first, ...rest] = prev;
-                const updatedFirst = { ...first, txHash: res.transactionHash || null, explorerUrl: res.explorerUrl || null };
-                return [updatedFirst, ...rest];
-              });
+              setBetHistory(prev => prev.map(item =>
+                item.id === newBetResult.id
+                  ? { ...item, txHash: res.transactionHash || null, explorerUrl: res.explorerUrl || null }
+                  : item
+              ));
               if (onBetHistoryChange) {
                 onBetHistoryChange({ ...newBetResult, txHash: res.transactionHash || null, explorerUrl: res.explorerUrl || null });
               }
@@ -554,13 +553,13 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
             console.error('Failed to log game to blockchain:', error);
           });
         }
-        
+
         setTimeout(() => {
           setIsDropping(false);
           console.log(`Ball landed in bin ${binIndex} with multiplier ${multipliers[binIndex]}, payout: $${reward}`);
         }, 100);
       }
-      
+
       // Remove ball from world
       Composite.remove(engine.world, ball);
     };
@@ -575,7 +574,7 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
   // Effect to initialize physics when component mounts or rows change
   useEffect(() => {
     const { pins, pinsLastRowXCoords } = initializePhysics(currentRows, currentRiskLevel);
-    
+
     return () => {
       if (renderRef.current) {
         const Render = Matter.Render;
@@ -595,12 +594,12 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
   // Function to start a bet and drop the ball
   const dropBall = useCallback(() => {
     if (!engineRef.current) return;
-    
+
     // Simple balance check - if user doesn't have enough balance, don't allow playing
     const currentBalance = parseFloat(userBalance);
     const latestBetAmount = betAmountRef.current;
     const betAmountInReduxUnit = latestBetAmount * 100000000;
-    
+
     if (betAmountInReduxUnit > currentBalance) {
       console.warn('Insufficient balance for bet:', {
         currentBalance: currentBalance / 100000000,
@@ -610,7 +609,7 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
       alert(`Insufficient balance! You have ${(currentBalance / 100000000).toFixed(3)} APT but need ${latestBetAmount} APT`);
       return;
     }
-    
+
     setIsDropping(true);
     setBallPosition(null);
     setHitPegs(new Set());
@@ -628,16 +627,16 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
     // Ball parameters from reference repo
     const ballOffsetRangeX = getPinDistanceX(currentRows) * 0.8;
     const ballRadius = getPinRadius(currentRows) * 2;
-    
+
     // Get first row pin positions to determine ball drop range
     const { pins: currentPins } = generatePins(currentRows);
     const firstRowPins = currentPins.filter(pin => pin.row === 0);
     if (firstRowPins.length === 0) return;
-    
+
     const firstRowStartX = firstRowPins[0].x;
     const firstRowEndX = firstRowPins[firstRowPins.length - 1].x;
     const firstRowCenterX = (firstRowStartX + firstRowEndX) / 2;
-    
+
     // Random start position within the first row pin range
     const startX = firstRowCenterX + (Math.random() - 0.5) * ballOffsetRangeX;
 
@@ -655,7 +654,7 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
     });
 
     World.add(engineRef.current.world, ball);
-    
+
     // Play drop sound
     playAudio(ballDropAudioRef);
   }, [isDropping, currentRows, userBalance, dispatch]);
@@ -674,7 +673,7 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
     const centerIndex = Math.floor(totalSlots / 2);
     const distanceFromCenter = Math.abs(index - centerIndex);
     const maxDistance = centerIndex;
-    
+
     if (index === 0 || index === totalSlots - 1) {
       return "from-pink-500 to-red-500";
     } else if (index === centerIndex) {
@@ -695,32 +694,32 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
   const [gamesPlayed, setGamesPlayed] = useState(0);
   const [bestMultiplier, setBestMultiplier] = useState(0);
   const [totalWon, setTotalWon] = useState(0);
-  
+
   // Calculate game statistics from betHistory
   useEffect(() => {
     if (betHistory.length > 0) {
       // Count games played
       setGamesPlayed(betHistory.length);
-      
+
       // Find best multiplier
       const bestMulti = betHistory.reduce((best, bet) => {
         const multiplierValue = parseFloat(bet.multiplier.replace('x', ''));
         return Math.max(best, multiplierValue);
       }, 0);
       setBestMultiplier(bestMulti);
-      
+
       // Calculate total won (sum of all payouts - sum of all bet amounts)
       const totalPayouts = betHistory.reduce((sum, bet) => {
         return sum + parseFloat(bet.payout);
       }, 0);
-      
+
       const totalBetAmounts = betHistory.reduce((sum, bet) => {
         return sum + parseFloat(bet.betAmount);
       }, 0);
-      
+
       const total = totalPayouts - totalBetAmounts;
       setTotalWon(total);
-      
+
       console.log('Game stats updated from history:', {
         gamesPlayed: betHistory.length,
         bestMultiplier: bestMulti,
@@ -748,18 +747,18 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
             </div>
           </div>
         )}
-        
 
-        
+
+
         {/* Physics Canvas Container */}
         <div className="relative w-full max-w-[800px]">
           {/* Matter.js Canvas - Visible for debugging */}
-          <div 
-            ref={canvasRef} 
+          <div
+            ref={canvasRef}
             className="absolute inset-0 opacity-80 pointer-events-none"
             style={{ zIndex: 1 }}
           />
-          
+
           {/* Visual SVG Overlay */}
           <svg className="w-full h-[600px] relative z-10" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet">
             {/* Draw pegs */}
@@ -772,15 +771,15 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
                 fill={hitPegs.has(pin.id) ? "#ffd700" : "white"}
                 className="drop-shadow-sm"
                 style={{
-                  filter: hitPegs.has(pin.id) 
-                    ? "drop-shadow(0 0 15px #ffd700) brightness(1.5)" 
+                  filter: hitPegs.has(pin.id)
+                    ? "drop-shadow(0 0 15px #ffd700) brightness(1.5)"
                     : "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
                 }}
               />
             ))}
           </svg>
 
-                    {/* Bet History - Right Side */}
+          {/* Bet History - Right Side */}
           <div className="absolute right-4 top-4 z-10">
             <div className="space-y-2">
               {betHistory.slice(0, 5).map((bet, index) => (
@@ -803,22 +802,19 @@ const PlinkoGame = forwardRef(({ rowCount = 16, riskLevel = "Medium", onRowChang
               {multipliers.map((multiplier, index) => (
                 <div
                   key={index}
-                  className={`text-center transition-all duration-300 ${
-                    ballPosition === index && !isDropping
-                      ? "text-yellow-400 font-bold scale-110"
-                      : "text-white"
-                  }`}
+                  className={`text-center transition-all duration-300 ${ballPosition === index && !isDropping
+                    ? "text-yellow-400 font-bold scale-110"
+                    : "text-white"
+                    }`}
                 >
-                  <div className={`w-10 h-7 rounded bg-gradient-to-r ${getSlotColor(index)} flex items-center justify-center mb-2 shadow-lg ${
-                    ballPosition === index && !isDropping ? 'ring-2 ring-yellow-400' : ''
-                  }`}>
+                  <div className={`w-10 h-7 rounded bg-gradient-to-r ${getSlotColor(index)} flex items-center justify-center mb-2 shadow-lg ${ballPosition === index && !isDropping ? 'ring-2 ring-yellow-400' : ''
+                    }`}>
                     <span className="text-[10px] font-bold text-white">{multiplier}</span>
                   </div>
-                  <div className={`w-10 h-1 rounded-full ${
-                    ballPosition === index && !isDropping
-                      ? "bg-gradient-to-r from-yellow-400 to-orange-500"
-                      : "bg-[#333947]"
-                  }`}></div>
+                  <div className={`w-10 h-1 rounded-full ${ballPosition === index && !isDropping
+                    ? "bg-gradient-to-r from-yellow-400 to-orange-500"
+                    : "bg-[#333947]"
+                    }`}></div>
                 </div>
               ))}
             </div>
